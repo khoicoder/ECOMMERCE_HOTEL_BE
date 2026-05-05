@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: BE
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/hotel
+    username: root
+    password: ""
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  server:
+    port: 8080
