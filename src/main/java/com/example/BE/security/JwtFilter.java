@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -23,15 +24,15 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
     // path
-        String path = request.getRequestURI();
+        String path = request.getServletPath();
 
         //login
-        if (path.startsWith("/api/auth/")) {
+        if (path.startsWith("/api/auth") || path.startsWith("/api/hotels")) {
             filterChain.doFilter(request, response);
             return;
         }
-        System.out.println("PATH: " + path);
-        String authHeader = request.getHeader("Authorization");
+        System.out.println("PATH : " + path);
+        String authHeader = request.getHeader("Authorization........");
 
     // 0 co token thi chan
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -41,11 +42,18 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             String token = authHeader.substring(7);
+
+            if (!jwtUtil.validateToken(token)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
             String username = jwtUtil.extractUsername(token);
-            jwtUtil.extractUsername(token);
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, null,null);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            System.out.println("👉 JwtFilter chạy: " + request.getRequestURI());
+
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+            SecurityContextHolder
+                    .getContext()
+                    .setAuthentication(authentication);
+            System.out.println("JwtFilter chạy:........ " + request.getRequestURI());
 
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
