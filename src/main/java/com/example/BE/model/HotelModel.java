@@ -1,5 +1,6 @@
 package com.example.BE.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,12 +15,15 @@ import java.util.List;
 @AllArgsConstructor
 public class HotelModel {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
+
     private String location;
+
     private Double rating;
 
     @Column(name = "price_from")
@@ -31,6 +35,8 @@ public class HotelModel {
     private String description;
 
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
-    private List<RoomModel> roomModels;
+
+    @JsonBackReference
+    private List<RoomModel> rooms;
 
 }
