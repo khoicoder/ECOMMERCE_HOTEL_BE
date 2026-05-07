@@ -1,9 +1,11 @@
 package com.example.BE.model;
 
+import com.example.BE.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 @Entity
 @Data
@@ -17,4 +19,6 @@ public class UserModel {
     private String email;
     private String username;
     private String password;
+    @Enumerated(EnumType.STRING)
+    private Role  role;
 }

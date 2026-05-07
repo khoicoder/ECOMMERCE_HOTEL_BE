@@ -36,7 +36,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 }
-//./gradlew bootRun --stacktrace
+//
 tasks.named('test') {
 	useJUnitPlatform()
 }

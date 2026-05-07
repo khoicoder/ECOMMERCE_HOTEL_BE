@@ -2,6 +2,7 @@ package com.example.BE.services;
 
 import com.example.BE.dto.AuthResponse;
 import com.example.BE.dto.RegisterRequest;
+import com.example.BE.enums.Role;
 import com.example.BE.model.UserModel;
 import com.example.BE.security.JwtUtil;
 import lombok.Data;
@@ -9,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.BE.repository.UserRepository;
 import org.springframework.web.bind.annotation.RestController;
-
+//Admin1@
 @Service
 @Data
 @RestController
@@ -53,6 +54,8 @@ public class AuthService {
         UserModel user = new UserModel();
         user.setUsername(registerRequest.getUsername());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setRole(Role.USER);
+
         userRepository.save(user);
         return "User registered successfully";
     }

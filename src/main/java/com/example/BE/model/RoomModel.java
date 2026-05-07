@@ -16,9 +16,7 @@ import lombok.NoArgsConstructor;
 
 @Table(name = "rooms")
 public final class RoomModel {
-
     @Id
-
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
