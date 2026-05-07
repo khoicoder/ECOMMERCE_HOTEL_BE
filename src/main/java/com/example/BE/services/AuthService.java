@@ -20,6 +20,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
 
+
     public AuthResponse login(String username, String password) {
         UserModel user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -41,7 +42,8 @@ public class AuthService {
 
 
 
-        return new AuthResponse(accessToken, refreshToken);
+
+        return new AuthResponse(accessToken, refreshToken, user.getUsername(),user.getRole());
     }
     public String register(RegisterRequest registerRequest) {
         if (registerRequest.getUsername() == null ||
@@ -64,8 +66,13 @@ public class AuthService {
             throw new RuntimeException("Invalid refresh token");
         }
         String username  = jwtUtil.extractUsername(refreshToken);
-        String newAccessToken = jwtUtil.generateAccessToken(refreshToken);
-        return new AuthResponse(newAccessToken, refreshToken);
+        UserModel user = userRepository.findByUsername(username) .orElseThrow(()
+                -> new RuntimeException("User not found"));
+        String newAccessToken = jwtUtil.generateAccessToken(username);
+
+        return new AuthResponse(newAccessToken,refreshToken,
+                user.getUsername(),
+                user.getRole());
 
 
     }
