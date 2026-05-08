@@ -32,18 +32,17 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
         System.out.println("PATH : " + path);
-        String authHeader = request.getHeader("Authorization........");
+        String authHeader = request.getHeader("Authorization");
 
     // 0 co token thi chan
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith("Bearer")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
         try {
             String token = authHeader.substring(7);
-
-            if (!jwtUtil.validateToken(token)) {
+            if (!jwtUtil.validateAccessToken(token)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }

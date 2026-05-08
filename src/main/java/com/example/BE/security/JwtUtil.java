@@ -4,6 +4,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.Data;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -11,30 +13,45 @@ import java.util.Date;
 
 @Component
 @Data
-public class JwtUtil {
-    private final long AccessToken =  1000 * 60 * 15;
-    private final long RefreshToken = 1000L * 60 * 60 * 24 * 7; ;
 
-    private final String SECRET = "12345678901234567890123456789012";
+public class JwtUtil {
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.access-token-expiration}")
+    private long accessTokenExpiration;
+
+    @Value("${jwt.refresh-token-expiration}")
+    private long refreshTokenExpiration;
+
 
     private Key getKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes());
+        return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String buildToken(String username, long expiration){
+    public String buildToken(String username, long expiration,String type){
+
+
         return Jwts.builder()
                 .setSubject(username)
-                .setIssuedAt(new Date(System.currentTimeMillis()+ new Date().getTime()))
+                .claim("type", type)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
                 .signWith(getKey(),SignatureAlgorithm.HS256)
                 .setExpiration(new Date(System.currentTimeMillis()+expiration))
                 .compact();
 
     }
     public String generateAccessToken(String username){
-        return buildToken(username, AccessToken);
+        return buildToken(username, accessTokenExpiration,"access");
     }
     public String generateRefreshToken(String username){
-        return buildToken(username, RefreshToken);
+        return buildToken(username, refreshTokenExpiration,"refresh");
+    }
+    public String extractType(String token){
+        return Jwts.parserBuilder()
+                .setSigningKey(getKey())
+                .build()
+                .parseClaimsJws(token).getBody().get("type", String.class);
     }
     public String extractUsername(String token){
         return Jwts.parserBuilder()
@@ -44,21 +61,42 @@ public class JwtUtil {
                 .getBody()
                 .getSubject();
     }
-    public boolean validateToken(String token){
+    public boolean validateAccessToken(String token){
         try{
-            Jwts.parserBuilder()
-                    .setSigningKey(getKey())
-                    .build()
-                    .parseClaimsJws(token);
-                    return true;
+            String type = extractType(token);
+            return type.equals("access");
 
-
-        }
-    catch (Exception e) {
-            System.out.println(e.getMessage());
+    }catch(Exception e){
             return false;
         }
     }
+
+    public boolean validateRefreshToken(String token){
+        try{
+            String type = extractType(token);
+            return type.equals("refresh");
+
+    }catch(Exception e){
+            return false;
+        }
+
+    }
+
+//    public boolean validateToken(String token){
+//        try{
+//            Jwts.parserBuilder()
+//                    .setSigningKey(getKey())
+//                    .build()
+//                    .parseClaimsJws(token);
+//                    return true;
+//
+//
+//        }
+//    catch (Exception e) {
+//            System.out.println(e.getMessage());
+//            return false;
+//        }
+//    }
 
     //debug time sống của Token
     public Date extractExpiration(String token){

@@ -1,5 +1,5 @@
 package com.example.BE.controller;
-
+// Admin1@
 import com.example.BE.dto.AuthResponse;
 import com.example.BE.dto.LoginRequest;
 import com.example.BE.dto.RefreshRequest;
@@ -23,12 +23,19 @@ public class AuthController {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
+
     @PostMapping("/login")
     public AuthResponse login(@RequestBody LoginRequest request) {
         return authService.login(request.getUsername(), request.getPassword());
 
 
     }
+    @PostMapping("/logout")
+    public String logout(@RequestHeader("Authorization") String authHeader) {
+
+        return authService.logout(authHeader);
+    }
+
 
     @PostMapping("/register")
     public String register(@RequestBody RegisterRequest rq) {
@@ -41,6 +48,17 @@ public class AuthController {
                 request.getRefreshToken()
         );
     }
+
+    //authentication pipeline
+    //security context lifecycle
+    //stateless session architecture
+
+
+
+
+
+
+
     @GetMapping("/me")
     public String me(){
 
