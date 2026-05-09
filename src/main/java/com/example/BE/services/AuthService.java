@@ -3,12 +3,14 @@ package com.example.BE.services;
 import com.example.BE.config.RedisConfig;
 import com.example.BE.dto.AuthResponse;
 import com.example.BE.dto.RegisterRequest;
+import com.example.BE.dto.UpdateProfileRequest;
 import com.example.BE.enums.Role;
 import com.example.BE.model.UserModel;
 import com.example.BE.security.JwtUtil;
 import lombok.Data;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,7 +26,6 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, Object> redisTemplate;
-
 
 
     public AuthResponse login(String username, String password) {
@@ -51,7 +52,6 @@ public class AuthService {
                 "Refresh Token sống còn: "
                         + jwtUtil.getRemainingTimeFormatted(refreshToken)
         );
-
 
 
 
@@ -85,8 +85,6 @@ public class AuthService {
         return "logged out successfully";
 
 
-
-
     }
     public AuthResponse refreshAccessToken(String refreshToken){
         if(!jwtUtil.validateRefreshToken(refreshToken)){
@@ -108,5 +106,48 @@ public class AuthService {
                 user.getRole());
 
     }
+
+    public AuthResponse updateProfile(UpdateProfileRequest request,Authentication auth) {
+        if(auth == null || !auth.isAuthenticated()) {
+            throw new RuntimeException("Unauthorized");
+        }
+        String curName = auth.getName();
+        UserModel user =userRepository.findByUsername(curName).orElseThrow(()
+                -> new RuntimeException("User not found")
+        );
+
+            if(request.getUsername().equals(user.getUsername()) && userRepository.findByUsername(curName).isPresent()) {
+                throw new RuntimeException("Username already exists");
+
+            }
+            user.setUsername(request.getUsername());
+            System.out.println(user.getUsername());
+            user.setEmail(request.getEmail());
+            System.out.println(user.getEmail());
+
+        if(request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+            if(request.getNewPassword() ==null && !passwordEncoder.matches(request.getNewPassword(), user.getPassword()))  {
+                throw new RuntimeException("current password does not match");
+            }
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+
+        }
+
+            userRepository.save(user);
+            String newAccessToken = jwtUtil.generateAccessToken(user.getUsername());
+            String newRefreshToken = jwtUtil.generateRefreshToken(user.getUsername());
+            redisTemplate.opsForValue().set("Refresh"+user.getUsername(), newRefreshToken, 7, TimeUnit.DAYS);
+
+        return new AuthResponse(
+                newAccessToken
+                ,newRefreshToken
+                ,user.getUsername()
+                ,user.getRole());
+    }
+    //identity consistency
+    //security context lifecycle
+    //token stale data problem ,Stale Token Problem "user experience + security + scalability"
+
+
 
 }
