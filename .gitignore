@@ -16,7 +16,9 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
-
+build.gradle
+.gradle
+.gitignore
 ### IntelliJ IDEA ###
 .idea
 *.iws

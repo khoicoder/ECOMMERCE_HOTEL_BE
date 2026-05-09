@@ -36,7 +36,6 @@ public class AuthController {
         return authService.logout(authHeader);
     }
 
-
     @PostMapping("/register")
     public String register(@RequestBody RegisterRequest rq) {
         return authService.register(rq);
@@ -52,9 +51,6 @@ public class AuthController {
     //authentication pipeline
     //security context lifecycle
     //stateless session architecture
-
-
-
 
 
 
