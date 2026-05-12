@@ -11,6 +11,7 @@ public class UpdateProfileRequest {
     @Email(message = "Email kh đúng định dạng")
     @NotBlank(message = "Email không được để trống")
     private String email;
+    private String avatar;
     private String currentPassword;
     private String newPassword;
 
