@@ -17,8 +17,6 @@ public class UserController {
     private final UserRepository userRepository;
 
 
-
-
     @GetMapping("/profile")
     public ResponseEntity<?> profile(Authentication authentication) {
         if (!isAuthenticate(authentication)) {
@@ -27,15 +25,18 @@ public class UserController {
 
         String username = authentication.getName();
         System.out.println("username from token : " + username);
+        System.out.println("AUTH = " + authentication);
+        System.out.println("AUTH IS AUTHENTICATED = " + (authentication != null && authentication.isAuthenticated()));
+        System.out.println("USERNAME = " + username);
         UserModel user = getUserOrNull(username);
         if(user == null){
-            return ResponseEntity.status(401).body("user not found");
+            return ResponseEntity.status(404).body("user not found" +username);
         }
         return ResponseEntity.ok(BuildProfileResponse(user)
 
         );
     }
-    public boolean isAuthenticate(Authentication authentication) {
+    private boolean isAuthenticate(Authentication authentication) {
         return authentication != null && authentication.isAuthenticated();
 
 
@@ -48,9 +49,10 @@ public class UserController {
         }
         return optionalUser.get();
     }
-    public ProfileResponse BuildProfileResponse(UserModel user) {
-        return new ProfileResponse(user.getUsername(), user.getEmail(),user.getRole(),user.getAvatarUrl());
+    private ProfileResponse BuildProfileResponse(UserModel user) {
+        return new ProfileResponse(user.getUsername(), user.getEmail(), user.getRole(), user.getPhone(), user.getAddress(), user.getAvatarUrl());
     }
+
 
 //ET /api/profile
 //↓

@@ -21,5 +21,7 @@ public class UserModel {
     private String password;
     @Enumerated(EnumType.STRING)
     private Role  role;
+    private String phone;
+    private String address;
     private String avatarUrl;
 }

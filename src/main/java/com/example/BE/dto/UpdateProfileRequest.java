@@ -6,12 +6,12 @@ import lombok.Data;
 
 @Data
 public class UpdateProfileRequest {
-    @NotBlank(message = "Username không được để trống hoặc chỉ chứa khoảng trắng")
     private String username;
     @Email(message = "Email kh đúng định dạng")
-    @NotBlank(message = "Email không được để trống")
     private String email;
     private String avatar;
+    private String address;
+    private String phone;
     private String currentPassword;
     private String newPassword;
 
