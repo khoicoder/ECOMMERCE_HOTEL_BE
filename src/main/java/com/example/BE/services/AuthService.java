@@ -110,75 +110,75 @@ public class AuthService {
                 user.getRole());
 
     }
-    public AuthResponse updateProfile(UpdateProfileRequest request,Authentication auth) {
-        if(auth == null || !auth.isAuthenticated()) {
-            throw new RuntimeException("Unauthorized");
-        }
-        String currentUsername  = auth.getName();
-        UserModel user =userRepository.findByUsername(currentUsername ).orElseThrow(()
-                -> new RuntimeException("User not found")
-        );
-        boolean usernameChanged =
-                request.getUsername() != null
-                && !request.getUsername().isBlank()
-                && !request.getUsername().equals(user.getUsername());
-        boolean emailChanged = request.getEmail() != null
-                && !request.getEmail().isBlank()
-                && request.getEmail().equals(user.getEmail());
-        boolean avatarChanged = request.getAvatar()!= null
-                && !request.getAvatar().isBlank();
-        boolean phoneChanged = request.getPhone()!= null
-                && !request.getPhone().isBlank()
-                && !request.getPhone().equals(user.getPhone());
-        boolean adressChanged = request.getAddress()!= null
-                && !request.getAddress().isBlank()
-                && !request.getAddress().equals(user.getAddress());
-        boolean passwordChanged = request.getNewPassword() != null
-                && !request.getNewPassword().isBlank();
-
-
-        if(usernameChanged){
-            if(userRepository.findByUsername(request.getUsername()).isPresent()) {
-                throw new RuntimeException("Username already exists");
-            }
-        user.setUsername(request.getUsername());}
-
-        if(emailChanged){
-            if(userRepository.findByEmail(request.getEmail()).isPresent()) {
-                throw new RuntimeException("Email already exists");
-
-            }
-            user.setEmail(request.getEmail());
-            }
-
-
-        if(avatarChanged)
-            user.setAvatarUrl(request.getAvatar());
-        if(phoneChanged)
-            user.setPhone(request.getPhone());
-        if(adressChanged)
-            user.setAddress(request.getAddress());
-
-        if(passwordChanged) {
-            if(request.getCurrentPassword() == null
-                    || request.getCurrentPassword().isBlank()
-                    || !passwordEncoder.matches(request.getCurrentPassword(),user.getPassword())) {
-                throw new RuntimeException("current password does not match");
-            }
-            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        }
-
-            userRepository.save(user);
-            String newAccessToken = jwtUtil.generateAccessToken(user.getUsername());
-            String newRefreshToken = jwtUtil.generateRefreshToken(user.getUsername());
-            redisTemplate.opsForValue().set("Refresh"+user.getUsername(), newRefreshToken, 7, TimeUnit.DAYS);
-
-        return new AuthResponse(
-                newAccessToken
-                ,newRefreshToken
-                ,user.getUsername()
-                ,user.getRole());
-    }
+//    public AuthResponse updateProfile(UpdateProfileRequest request,Authentication auth) {
+//        if(auth == null || !auth.isAuthenticated()) {
+//            throw new RuntimeException("Unauthorized");
+//        }
+//        String currentUsername  = auth.getName();
+//        UserModel user =userRepository.findByUsername(currentUsername ).orElseThrow(()
+//                -> new RuntimeException("User not found")
+//        );
+//        boolean usernameChanged =
+//                request.getUsername() != null
+//                && !request.getUsername().isBlank()
+//                && !request.getUsername().equals(user.getUsername());
+//        boolean emailChanged = request.getEmail() != null
+//                && !request.getEmail().isBlank()
+//                && request.getEmail().equals(user.getEmail());
+//        boolean avatarChanged = request.getAvatar()!= null
+//                && !request.getAvatar().isBlank();
+//        boolean phoneChanged = request.getPhone()!= null
+//                && !request.getPhone().isBlank()
+//                && !request.getPhone().equals(user.getPhone());
+//        boolean adressChanged = request.getAddress()!= null
+//                && !request.getAddress().isBlank()
+//                && !request.getAddress().equals(user.getAddress());
+//        boolean passwordChanged = request.getNewPassword() != null
+//                && !request.getNewPassword().isBlank();
+//
+//
+//        if(usernameChanged){
+//            if(userRepository.findByUsername(request.getUsername()).isPresent()) {
+//                throw new RuntimeException("Username already exists");
+//            }
+//        user.setUsername(request.getUsername());}
+//
+//        if(emailChanged){
+//            if(userRepository.findByEmail(request.getEmail()).isPresent()) {
+//                throw new RuntimeException("Email already exists");
+//
+//            }
+//            user.setEmail(request.getEmail());
+//            }
+//
+//
+//        if(avatarChanged)
+//            user.setAvatarUrl(request.getAvatar());
+//        if(phoneChanged)
+//            user.setPhone(request.getPhone());
+//        if(adressChanged)
+//            user.setAddress(request.getAddress());
+//
+//        if(passwordChanged) {
+//            if(request.getCurrentPassword() == null
+//                    || request.getCurrentPassword().isBlank()
+//                    || !passwordEncoder.matches(request.getCurrentPassword(),user.getPassword())) {
+//                throw new RuntimeException("current password does not match");
+//            }
+//            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+//        }
+//
+//            userRepository.save(user);
+//            String newAccessToken = jwtUtil.generateAccessToken(user.getUsername());
+//            String newRefreshToken = jwtUtil.generateRefreshToken(user.getUsername());
+//            redisTemplate.opsForValue().set("Refresh"+user.getUsername(), newRefreshToken, 7, TimeUnit.DAYS);
+//
+//        return new AuthResponse(
+//                newAccessToken
+//                ,newRefreshToken
+//                ,user.getUsername()
+//                ,user.getRole());
+//    }
     //identity consistency
     //security context lifecycle
     //token stale data problem ,Stale Token Problem "user experience + security + scalability"
