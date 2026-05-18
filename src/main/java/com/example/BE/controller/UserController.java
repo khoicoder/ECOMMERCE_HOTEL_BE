@@ -1,10 +1,6 @@
 package com.example.BE.controller;
 
-import com.example.BE.dto.AuthResponse;
-import com.example.BE.dto.ProfileResponse;
-import com.example.BE.dto.UpdateProfileRequest;
-import com.example.BE.model.UserModel;
-import com.example.BE.repository.UserRepository;
+import com.example.BE.dto.*;
 
 import com.example.BE.services.AuthService;
 import com.example.BE.services.UserService;
@@ -14,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api")
@@ -28,10 +23,14 @@ public class UserController {
     }
 
     @PutMapping("/profile-update")
-    public ResponseEntity<AuthResponse> updateProfile(@Valid @RequestBody UpdateProfileRequest rq,
-                                          Authentication authentication ) {
+    public ResponseEntity<UpdateProfileResponse> updateProfile(@Valid @RequestBody UpdateProfileRequest rq,
+                                                               Authentication authentication ) {
         return ResponseEntity.ok(userService.updateProfile(rq,authentication));
         }
+    @PutMapping("/users/me/password")
+    public ResponseEntity<ChangePasswordResponse>  changePassword(@Valid @RequestBody ChangePasswordRequest rq, Authentication authentication) {
+        return ResponseEntity.ok(userService.changePassword(rq,authentication));
+    }
 
 
 

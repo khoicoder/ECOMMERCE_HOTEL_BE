@@ -1,13 +1,18 @@
 package com.example.BE.security;
+import com.example.BE.enums.Role;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
+import io.jsonwebtoken.Claims;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -46,15 +51,29 @@ public class JwtFilter extends OncePerRequestFilter {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
-            String username = jwtUtil.extractUsername(token);
-
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
-            SecurityContextHolder
-                    .getContext()
-                    .setAuthentication(authentication);
+            Claims claims = jwtUtil.parseClaims(token);
+            Long userId = (Long) claims.get("id");
+            String username =  claims.getSubject();
+            String roleStr = (String) claims.get("role",String.class);
+            String sessionIdStr = (String) claims.get("sid",String.class);
+            Role role = Role.valueOf(roleStr);
+            UUID sessionId = UUID.fromString(sessionIdStr);
+            AuthPrincipal authPrincipal = new AuthPrincipal(
+                    userId,
+                    username,
+                    role,
+                    sessionId);
+            List<GrantedAuthority> authorities = List.of(
+                    new SimpleGrantedAuthority("ROLE"+role.name()));
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                    authPrincipal,
+                    null,
+                    authorities);
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             System.out.println("JwtFilter chạy:........ " + request.getRequestURI());
 
-        } catch (Exception e) {
+        }catch (Exception e) {
+            e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
