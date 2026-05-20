@@ -1,6 +1,7 @@
 package com.example.BE.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,8 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name= "user_sessions")
-@Getter
-@Setter
+@Data
 public class UserSession {
     @Id
     @GeneratedValue
@@ -24,10 +24,12 @@ public class UserSession {
     @Column(nullable = false)
     private Instant refreshTokenExpireAt;
     private Instant revokedAt;
+
     @Column(nullable = false)
-    private String createAt;
+    private Instant createAt;
     @Column(nullable = false)
     private Instant lastUsedAt;
+
     private String userAgent;
     private String ipAddress;
 

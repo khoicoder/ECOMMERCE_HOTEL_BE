@@ -1,5 +1,6 @@
 package com.example.BE.security;
 
+import com.example.BE.enums.Role;
 import com.example.BE.model.UserModel;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -68,8 +69,13 @@ public class JwtUtil {
     public Long extractUserID(String token){
         return parseClaims(token).get("uid",Long.class);
     }
-    public String extractRole(String token){
-        return parseClaims(token).get("role",String.class);
+
+    public Role extractRole(String token){
+        String role = parseClaims(token).get("role", String.class);
+        if (role == null) {
+            throw new RuntimeException("Role claim is missing");
+        }
+        return Role.valueOf(role);
     }
     public UUID extractSessionID(String token){
         String sid = parseClaims(token).get("sid",String.class);

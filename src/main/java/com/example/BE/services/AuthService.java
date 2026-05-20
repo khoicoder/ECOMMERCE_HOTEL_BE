@@ -1,21 +1,23 @@
 package com.example.BE.services;
-
-import com.example.BE.config.RedisConfig;
 import com.example.BE.dto.AuthResponse;
 import com.example.BE.dto.RegisterRequest;
-import com.example.BE.dto.UpdateProfileRequest;
+
 import com.example.BE.enums.Role;
 import com.example.BE.model.UserModel;
+import com.example.BE.model.UserSession;
+import com.example.BE.repository.UserSessionRepository;
 import com.example.BE.security.JwtUtil;
+import jakarta.transaction.Transactional;
 import lombok.Data;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.BE.repository.UserRepository;
 
+import java.time.Instant;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 //Admin1@
@@ -26,31 +28,43 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, Object> redisTemplate;
-
-
-    public AuthResponse login(String username, String password) {
+    private final UserSessionRepository userSessionRepository;
+    @Transactional
+    public AuthResponse login(String username, String password,String devideId) {
         UserModel user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Wrong password");
         }
-        String accessToken = jwtUtil.generateAccessToken(username);
-        String refreshToken = jwtUtil.generateRefreshToken(username);
+        if (user.getRole() == null
+        ){
+            throw new RuntimeException("User role is missing");
+        }
+
+        String refreshToken = jwtUtil.generateRefreshToken();
+        UserSession session = new UserSession();
+        session.setUser(user);
+        session.setDeviceID(devideId);
+        session.setRefreshTokenHash(jwtUtil.hashtoken(refreshToken));
+        session.setCreateAt(Instant.now());
+        session.setLastUsedAt(Instant.now());
+        session.setRefreshTokenExpireAt(Instant.now().plusMillis(jwtUtil.getRefreshTokenExpiration()));
+        userSessionRepository.save(session);
+        String accessToken = jwtUtil.generateAccessToken(user,session.getId());
         //Refresh Token Stateful
         redisTemplate.opsForValue().set(
-                "Refresh"+username,
+                refreshKey(user.getUsername()),
                 refreshToken, 7, TimeUnit.DAYS
 
-        );
-        System.out.println(
+        );System.out.println(
                 "Access Token sống còn: "
                         + jwtUtil.getRemainingTimeFormatted(accessToken)
         );
 
+
         System.out.println(
-                "Refresh Token sống còn: "
-                        + jwtUtil.getRemainingTimeFormatted(refreshToken)
+                "Refresh Token đã tạo dạng opaque token, không parse JWT expiration"
         );
 
 
@@ -77,6 +91,9 @@ public class AuthService {
         userRepository.save(user);
         return "User registered successfully";
     }
+    private String refreshKey(String username) {
+        return "Refresh:" + username;
+    }
     public String logout(String authHeader) {
         if(authHeader == null || !authHeader.startsWith("Bearer")) {
             throw new RuntimeException("invalid token");
@@ -89,23 +106,32 @@ public class AuthService {
 
 
     }
+    @Transactional
     public AuthResponse refreshAccessToken(String refreshToken){
-        if(!jwtUtil.validateRefreshToken(refreshToken)){
-            throw new RuntimeException("Invalid refresh token");
+        String refreshTokenHash = jwtUtil.hashtoken(refreshToken);
+        UserSession session = userSessionRepository.findByRefreshTokenHash(refreshTokenHash).orElseThrow(()
+                ->new RuntimeException("Invalid refresh token"));
+        if(session.getRevokedAt()!=null) {
+            throw new RuntimeException("Refresh token đã bị thu hồi");
         }
-        String username  = jwtUtil.extractUsername(refreshToken);
+        if(session.getRefreshTokenExpireAt().isBefore(Instant.now())) {
+            throw new RuntimeException("Refresh Token đã hết hạn");
 
-        String savedToken = (String)redisTemplate.opsForValue().get("Refresh:"+username);
-        if(savedToken==null || savedToken.equals(refreshToken)){
-            throw new RuntimeException("User not found hoặc refresh token expired");
         }
 
-        UserModel user = userRepository.findByUsername(username) .orElseThrow(()
-                -> new RuntimeException("User not found"));
+        UserModel user = session.getUser();
+        String newRefreshToken = jwtUtil.generateRefreshToken();
 
-        String newAccessToken = jwtUtil.generateAccessToken(username);
+        session.setRefreshTokenHash(jwtUtil.hashtoken(newRefreshToken));
 
-        return new AuthResponse(newAccessToken,refreshToken,
+        session.setLastUsedAt(Instant.now());
+        session.getRefreshTokenExpireAt().plusMillis(jwtUtil.getRefreshTokenExpiration());
+        userSessionRepository.save(session);
+        String newAccessToken =jwtUtil.generateAccessToken(user,session.getId());
+
+
+
+        return new AuthResponse(newAccessToken,newRefreshToken,
                 user.getUsername(),
                 user.getRole());
 

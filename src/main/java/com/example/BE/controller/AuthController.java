@@ -13,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import com.example.BE.security.JwtUtil;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
@@ -26,7 +28,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthResponse login(@RequestBody LoginRequest request) {
-        return authService.login(request.getUsername(), request.getPassword());
+        String deviceId = request.getDeviceId();
+        if (deviceId == null || deviceId.isEmpty()) {
+            deviceId = UUID.randomUUID().toString();
+        }
+        return authService.login(request.getUsername(),request.getPassword(),deviceId);
 
 
     }
