@@ -283,13 +283,6 @@ public class UserService {
             throw new RuntimeException("Avatar không được để trống");
         }
 
-        if (rq.getCurrentPassword() != null && rq.getCurrentPassword().isBlank()) {
-            throw new RuntimeException("Current password không được để trống");
-        }
-
-        if (rq.getNewPassword() != null && rq.getNewPassword().isBlank()) {
-            throw new RuntimeException("New password không được để trống");
-        }
     }
     private String refreshKey(String username) {
         return "refresh" + username;
