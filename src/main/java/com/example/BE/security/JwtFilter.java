@@ -43,7 +43,6 @@ public class JwtFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-
         try {
             String token = authHeader.substring(7);
             if (!jwtUtil.validateAccessToken(token)) {

@@ -34,12 +34,15 @@ public class AuthController {
         }
         return authService.login(request.getUsername(),request.getPassword(),deviceId);
 
-
     }
     @PostMapping("/logout")
     public String logout(@RequestHeader("Authorization") String authHeader) {
 
         return authService.logout(authHeader);
+    }
+    @PostMapping("/logout-all")
+    public String logoutAll(@RequestHeader("Authorization") String authHeader) {
+        return authService.logoutAll(authHeader);
     }
 
     @PostMapping("/register")
@@ -53,6 +56,7 @@ public class AuthController {
                 request.getRefreshToken()
         );
     }
+
 
     //authentication pipeline
     //security context lifecycle
