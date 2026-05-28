@@ -1,6 +1,8 @@
 package com.example.BE.services;
 
 import com.example.BE.dto.*;
+import com.example.BE.exception.ConflictException;
+import com.example.BE.exception.UnauthorizedException;
 import com.example.BE.model.UserModel;
 import com.example.BE.model.UserSession;
 import com.example.BE.repository.UserRepository;
@@ -33,27 +35,27 @@ public class UserService {
             Authentication authentication
     ) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException();
         }
 
         AuthPrincipal principal =
                 (AuthPrincipal) authentication.getPrincipal();
 
         UserModel user = userRepository.findById(principal.userId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ConflictException("User not found"));
 
         if (!passwordEncoder.matches(
                 request.getCurrentPassword(),
                 user.getPassword()
         )) {
-            throw new RuntimeException("Mật khẩu hiện tại không đúng");
+            throw new ConflictException("Mật khẩu hiện tại không đúng");
         }
 
         if (passwordEncoder.matches(
                 request.getNewPassword(),
                 user.getPassword()
         )) {
-            throw new RuntimeException("Mật khẩu mới không được trùng mật khẩu cũ");
+            throw new ConflictException("Mật khẩu mới không được trùng mật khẩu cũ");
         }
 
         UserSession currentSession = sessionRepository
