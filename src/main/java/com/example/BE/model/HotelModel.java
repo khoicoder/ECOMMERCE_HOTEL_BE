@@ -1,5 +1,6 @@
 package com.example.BE.model;
 
+import com.example.BE.audit.BaseAuditable;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -14,8 +15,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HotelModel {
-
+public class HotelModel extends BaseAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
