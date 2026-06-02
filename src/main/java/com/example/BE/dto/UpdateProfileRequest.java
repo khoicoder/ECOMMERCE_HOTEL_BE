@@ -10,7 +10,7 @@ public class UpdateProfileRequest {
     private String username;
     @Email(message = "Email kh đúng định dạng")
     private String email;
-    private String avatar;
+    private String avatarUrl;
     private String address;
     @Pattern(
             regexp = "^(0[0-9]{9})$",

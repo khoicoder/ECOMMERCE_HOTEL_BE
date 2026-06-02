@@ -4,7 +4,7 @@ public class ValidateException extends BaseAppException {
     public ValidateException() {
         super(ErrorCode.VALIDATE_REQUEST);
     }
-    public ValidateException(ErrorCode errorCode, String detailMessage) {
-        super(errorCode, detailMessage);
+    public ValidateException(String detailMessage) {
+        super(ErrorCode.VALIDATE_REQUEST, detailMessage);
     }
 }

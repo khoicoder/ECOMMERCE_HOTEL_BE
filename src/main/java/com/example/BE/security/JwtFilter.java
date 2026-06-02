@@ -56,6 +56,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     jwtUtil.extractSessionID(token));
             List<SimpleGrantedAuthority> authorities = List.of(
                     new SimpleGrantedAuthority("ROLE_"+principal.role()));
+
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     principal,
                     null,

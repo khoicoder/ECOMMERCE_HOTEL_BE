@@ -1,8 +1,7 @@
 package com.example.BE.services;
 
 import com.example.BE.dto.*;
-import com.example.BE.exception.ConflictException;
-import com.example.BE.exception.UnauthorizedException;
+import com.example.BE.exception.*;
 import com.example.BE.model.UserModel;
 import com.example.BE.model.UserSession;
 import com.example.BE.repository.UserRepository;
@@ -35,14 +34,14 @@ public class UserService {
             Authentication authentication
     ) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException("Unauthorized");
         }
 
         AuthPrincipal principal =
                 (AuthPrincipal) authentication.getPrincipal();
 
         UserModel user = userRepository.findById(principal.userId())
-                .orElseThrow(() -> new ConflictException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         if (!passwordEncoder.matches(
                 request.getCurrentPassword(),
@@ -60,14 +59,14 @@ public class UserService {
 
         UserSession currentSession = sessionRepository
                 .findById(principal.sessionId())
-                .orElseThrow(() -> new RuntimeException("Session not found"));
+                .orElseThrow(() -> new BadRequestException("Session not found"));
 
         if (currentSession.getRevokedAt() != null) {
-            throw new RuntimeException("Session đã bị đăng xuất");
+            throw new BadRequestException("Session đã bị đăng xuất");
         }
 
         if (currentSession.getRefreshTokenExpireAt().isBefore(Instant.now())) {
-            throw new RuntimeException("Session đã hết hạn");
+            throw new BadRequestException("Session đã hết hạn");
         }
 
         user.setPassword(
@@ -89,7 +88,6 @@ public class UserService {
         currentSession.setRefreshTokenHash(
                 jwtUtil.hashtoken(newRefreshToken)
         );
-
         currentSession.setLastUsedAt(Instant.now());
 
         currentSession.setRefreshTokenExpireAt(
@@ -110,15 +108,16 @@ public class UserService {
                 newRefreshToken
         );
     }
+    //lấy đại diện
     private AuthPrincipal getPrincipal(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         Object principal = authentication.getPrincipal();
 
         if (!(principal instanceof AuthPrincipal authPrincipal)) {
-            throw new RuntimeException("Invalid authentication principal");
+            throw new ValidateException("Invalid authentication principal");
         }
 
         return authPrincipal;
@@ -130,11 +129,11 @@ public class UserService {
     public ProfileResponse getProfile(Authentication authentication) {
         AuthPrincipal principal = getPrincipal(authentication);
         UserModel user = userRepository.findById(principal.userId()).orElseThrow(()
-                -> new RuntimeException("User not found"));
+                -> new NotFoundException("User not found"));
         return BuildProfileResponse(user);
 
     }
-
+    @Transactional
     public UpdateProfileResponse updateProfile(
             UpdateProfileRequest request,
             Authentication authentication) {
@@ -153,8 +152,8 @@ public class UserService {
                         && !request.getEmail().equals(user.getEmail());
 
         boolean avatarChanged =
-                request.getAvatar() != null
-                        && !request.getAvatar().isBlank();
+                request.getAvatarUrl() != null
+                        && !request.getAvatarUrl().isBlank();
 
         boolean phoneChanged =
                 request.getPhone() != null
@@ -167,11 +166,13 @@ public class UserService {
                         && !request.getAddress().equals(user.getAddress());
 
 
-        boolean needNewToken = false;
+        boolean needNewToken =
+                usernameChanged
+                        || emailChanged;
 
         if (usernameChanged) {
             if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-                throw new RuntimeException("Username already exists");
+                throw new ConflictException("Username already exists");
             }
 
             user.setUsername(request.getUsername());
@@ -179,14 +180,14 @@ public class UserService {
 
         if (emailChanged) {
             if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-                throw new RuntimeException("Email already exists");
+                throw new ConflictException("Email already exists");
             }
 
             user.setEmail(request.getEmail());
         }
 
         if (avatarChanged) {
-            user.setAvatarUrl(request.getAvatar());
+            user.setAvatarUrl(request.getAvatarUrl());
         }
 
         if (phoneChanged) {
@@ -197,18 +198,17 @@ public class UserService {
             user.setAddress(request.getAddress());
         }
 
-
         userRepository.save(user);
         String accessToken = null;
         String refreshToken = null;
         if (needNewToken) {
             UserSession currentSesson = sessionRepository.findById(principal.sessionId()).orElseThrow(()
-                    ->new RuntimeException("Session not found"));
+                    ->new UnauthorizedException("Session not found"));
             if(currentSesson.getRevokedAt() != null) {
-                throw new RuntimeException("Session đã bị đăng xuất");
+                throw new UnauthorizedException("Session đã bị đăng xuất");
             }
             if(currentSesson.getRefreshTokenExpireAt().isBefore(Instant.now())) {
-                throw new RuntimeException("Session đã hết hạn");
+                throw new UnauthorizedException("Session đã hết hạn");
             }
             refreshToken = jwtUtil.generateRefreshToken();
             currentSesson.setRefreshTokenHash(jwtUtil.hashtoken(refreshToken));
@@ -224,14 +224,6 @@ public class UserService {
             );
         }
 
-
-
-        redisTemplate.opsForValue().set(
-                refreshKey(user.getUsername()),
-                refreshToken,
-                7,
-                TimeUnit.DAYS
-        );
 
         return new UpdateProfileResponse(
                 "profile updated successfully",
@@ -257,32 +249,34 @@ public class UserService {
     }
     private UserModel getCurrentUser(Authentication auth) {
         if (auth == null || !auth.isAuthenticated()) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
 
         }
-        String username = auth.getName();
-        return userRepository.findByUsername(username).orElseThrow(()-> new RuntimeException("User not found :"+username));
+        AuthPrincipal principal =  (AuthPrincipal) auth.getPrincipal();
+
+        return userRepository.findById(principal.userId()).orElseThrow(()
+                -> new NotFoundException("User not found :"+principal.userId()));
 
     }
     private void validateBlankFields(UpdateProfileRequest rq) {
         if (rq.getUsername() != null && rq.getUsername().isBlank()) {
-            throw new RuntimeException("Username không được để trống");
+            throw new ValidateException("Username không được để trống");
         }
 
         if (rq.getEmail() != null && rq.getEmail().isBlank()) {
-            throw new RuntimeException("Email không được để trống");
+            throw new ValidateException("Email không được để trống");
         }
 
         if (rq.getPhone() != null && rq.getPhone().isBlank()) {
-            throw new RuntimeException("Phone không được để trống");
+            throw new ValidateException("Phone không được để trống");
         }
 
         if (rq.getAddress() != null && rq.getAddress().isBlank()) {
-            throw new RuntimeException("Address không được để trống");
+            throw new ValidateException("Address không được để trống");
         }
 
-        if (rq.getAvatar() != null && rq.getAvatar().isBlank()) {
-            throw new RuntimeException("Avatar không được để trống");
+        if (rq.getAvatarUrl() != null && rq.getAvatarUrl().isBlank()) {
+            throw new ValidateException("Avatar không được để trống");
         }
 
     }

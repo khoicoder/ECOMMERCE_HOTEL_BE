@@ -3,6 +3,10 @@ import com.example.BE.dto.AuthResponse;
 import com.example.BE.dto.RegisterRequest;
 
 import com.example.BE.enums.Role;
+import com.example.BE.exception.ConflictException;
+import com.example.BE.exception.NotFoundException;
+import com.example.BE.exception.UnauthorizedException;
+import com.example.BE.exception.ValidateException;
 import com.example.BE.model.UserModel;
 import com.example.BE.model.UserSession;
 import com.example.BE.repository.UserSessionRepository;
@@ -33,14 +37,14 @@ public class AuthService {
     @Transactional
     public AuthResponse login(String username, String password, String devideId) {
         UserModel user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Wrong password");
+            throw new NotFoundException("Wrong password");
         }
         if (user.getRole() == null
         ) {
-            throw new RuntimeException("User role is missing");
+            throw new UnauthorizedException("User role is missing");
         }
 
         String refreshToken = jwtUtil.generateRefreshToken();
@@ -78,11 +82,11 @@ public class AuthService {
                 registerRequest.getPassword() == null
                 || registerRequest.getEmail() == null
         ) {
-            throw new RuntimeException("Missing data");
+            throw new NotFoundException("Missing data");
         }
 
         if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already exists");
+            throw new ConflictException("Username already exists");
         }
         UserModel user = new UserModel();
         user.setUsername(registerRequest.getUsername());
@@ -101,13 +105,13 @@ public class AuthService {
     public String logout(String authHeader) {
 
         if (authHeader == null || !authHeader.startsWith("Bearer")) {
-            throw new RuntimeException("invalid token");
+            throw new ValidateException("Invalid refresh token");
         }
 
         String token = authHeader.substring(7);
         UUID sessionId = jwtUtil.extractSessionID(token);
         UserSession session = userSessionRepository.findById(sessionId).orElseThrow(()
-                -> new RuntimeException("Invalid session ID")) ;
+                -> new NotFoundException("Invalid session ID")) ;
         if(session.getRevokedAt() == null) {
             session.setRevokedAt(Instant.now());
             userSessionRepository.save(session);
@@ -120,7 +124,7 @@ public class AuthService {
     @Transactional
     public String logoutAll(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer")) {
-            throw new RuntimeException("invalid token");
+            throw new ValidateException("invalid token");
         }
         String token = authHeader.substring(7).trim();
         Long userId = jwtUtil.extractUserID(token);
@@ -130,11 +134,10 @@ public class AuthService {
 
 
     }
-
     @Transactional
     public AuthResponse refreshAccessToken(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new RuntimeException("Refresah token is required");
+            throw new ValidateException("Refresh token is required");
 
         }
         // hash refresh token từ client gửi lên
@@ -143,15 +146,17 @@ public class AuthService {
         UserSession session = userSessionRepository
                 .findByRefreshTokenHash(refreshTokenHash)
                 .orElseThrow(()
-                -> new RuntimeException("Invalid refresh token"));
+                -> new ValidateException("Invalid refresh token"));
         //check token da bi thu hoi chua
         if (session.getRevokedAt() != null) {
-            throw new RuntimeException("Refresh token đã bị thu hồi");
+            throw new UnauthorizedException("Refresh token đã bị thu hồi");
         }
         if (session.getRefreshTokenExpireAt().isBefore(Instant.now())) {
-            throw new RuntimeException("Refresh Token đã hết hạn");
-
+            throw new UnauthorizedException("Refresh Token đã hết hạn");
         }
+//        không muốn cho client biết:
+//        token không tồn tại
+//        token đã revoke nguyên tắc Fail closed
         UserModel user = session.getUser();
         String newRefreshToken = jwtUtil.generateRefreshToken();
         //update hash mới vào db
