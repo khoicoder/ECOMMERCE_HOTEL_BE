@@ -1,6 +1,6 @@
 package com.example.BE.services;
-import com.example.BE.dto.AuthResponse;
-import com.example.BE.dto.RegisterRequest;
+import com.example.BE.dto.user.response.AuthResponse;
+import com.example.BE.dto.user.request.RegisterRequest;
 
 import com.example.BE.enums.Role;
 import com.example.BE.exception.ConflictException;

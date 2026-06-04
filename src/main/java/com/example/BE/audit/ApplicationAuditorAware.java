@@ -15,14 +15,15 @@ public class ApplicationAuditorAware implements AuditorAware<Long> {
     public Optional<Long> getCurrentAuditor() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null && !authentication.isAuthenticated()) {
+        if (authentication == null || !authentication.isAuthenticated()) {
             return Optional.empty();
         }
         Object principal = authentication.getPrincipal();
-        if (principal instanceof AuthPrincipal authPrincipal){
-            return Optional.of(authPrincipal.userId());
+        if (!(principal instanceof AuthPrincipal authPrincipal)) {
+            return Optional.empty();
         }
-        return Optional.empty();
+
+        return Optional.of(authPrincipal.userId());
     }
 
 }

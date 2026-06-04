@@ -1,10 +1,7 @@
 package com.example.BE;
 
-import com.example.BE.config.SecurityConfig;
-import com.example.BE.dto.ProfileResponse;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication

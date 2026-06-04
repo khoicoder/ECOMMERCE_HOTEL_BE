@@ -1,7 +1,9 @@
 package com.example.BE.controller;
 
-import com.example.BE.dto.*;
-
+import com.example.BE.dto.user.request.ChangePasswordRequest;
+import com.example.BE.dto.user.request.UpdateProfileRequest;
+import com.example.BE.dto.user.response.ChangePasswordResponse;
+import com.example.BE.dto.user.response.UpdateProfileResponse;
 import com.example.BE.services.AuthService;
 import com.example.BE.services.UserService;
 import jakarta.validation.Valid;
