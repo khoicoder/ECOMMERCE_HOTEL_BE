@@ -1,6 +1,10 @@
 package com.example.BE.services;
 
-import com.example.BE.dto.*;
+import com.example.BE.dto.user.request.ChangePasswordRequest;
+import com.example.BE.dto.user.request.UpdateProfileRequest;
+import com.example.BE.dto.user.response.ChangePasswordResponse;
+import com.example.BE.dto.user.response.ProfileResponse;
+import com.example.BE.dto.user.response.UpdateProfileResponse;
 import com.example.BE.exception.*;
 import com.example.BE.model.UserModel;
 import com.example.BE.model.UserSession;
@@ -17,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -253,6 +256,9 @@ public class UserService {
 
         }
         AuthPrincipal principal =  (AuthPrincipal) auth.getPrincipal();
+        System.out.println("AUTH NAME = " + auth.getName());
+        System.out.println("PRINCIPAL = " + auth.getPrincipal());
+
 
         return userRepository.findById(principal.userId()).orElseThrow(()
                 -> new NotFoundException("User not found :"+principal.userId()));

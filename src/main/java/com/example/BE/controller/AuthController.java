@@ -1,9 +1,9 @@
 package com.example.BE.controller;
 // Admin1@
-import com.example.BE.dto.AuthResponse;
-import com.example.BE.dto.LoginRequest;
-import com.example.BE.dto.RefreshRequest;
-import com.example.BE.dto.RegisterRequest;
+import com.example.BE.dto.user.response.AuthResponse;
+import com.example.BE.dto.user.request.LoginRequest;
+import com.example.BE.dto.user.request.RefreshRequest;
+import com.example.BE.dto.user.request.RegisterRequest;
 import com.example.BE.repository.UserRepository;
 import com.example.BE.services.AuthService;
 import lombok.AllArgsConstructor;

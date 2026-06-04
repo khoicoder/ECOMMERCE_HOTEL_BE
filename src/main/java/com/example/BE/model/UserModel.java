@@ -25,4 +25,5 @@ public class UserModel extends BaseAuditable {
     private String phone;
     private String address;
     private String avatarUrl;
+    private boolean active;
 }
