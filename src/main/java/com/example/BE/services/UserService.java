@@ -235,10 +235,10 @@ public class UserService {
                 refreshToken
         );
     }
-
-    private static Long getId(UserModel user) {
-        return user.getId();
-    }
+//
+//    private static Long getId(UserModel user) {
+//        return user.getId();
+//    }
 
 
     private ProfileResponse BuildProfileResponse(UserModel user) {
