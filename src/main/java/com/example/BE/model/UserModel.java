@@ -3,13 +3,12 @@ package com.example.BE.model;
 import com.example.BE.enums.Role;
 import com.example.BE.audit.BaseAuditable;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name ="users")

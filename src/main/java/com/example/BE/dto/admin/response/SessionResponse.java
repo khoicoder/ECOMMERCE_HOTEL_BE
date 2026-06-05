@@ -7,7 +7,8 @@ public record SessionResponse(
         UUID sessionId,
         Instant createdAt,
         Instant lastUsedAt,
-        boolean active
+        Instant refreshTokenExpireAt,
+        Instant revokedAt
 
 ){
 }
