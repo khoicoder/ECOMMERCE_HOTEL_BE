@@ -2,7 +2,7 @@
 //
 //import com.example.BE.model.HotelModel;
 //import com.example.BE.model.RoomModel;
-//import com.example.BE.model.RoomStatus;
+//import com.example.BE.enums.RoomStatus;
 //import com.example.BE.repository.HotelRepository;
 //import com.example.BE.repository.RoomRepository;
 //import org.springframework.boot.CommandLineRunner;

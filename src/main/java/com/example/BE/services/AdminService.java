@@ -5,7 +5,6 @@ import com.example.BE.dto.admin.request.ChangeRoleRequest;
 import com.example.BE.dto.admin.response.DashboardResponse;
 import com.example.BE.dto.admin.response.SessionResponse;
 import com.example.BE.dto.admin.response.UserResponse;
-import com.example.BE.enums.Role;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

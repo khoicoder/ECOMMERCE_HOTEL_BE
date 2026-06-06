@@ -5,11 +5,9 @@ import com.example.BE.dto.admin.response.DashboardResponse;
 import com.example.BE.dto.admin.response.DashboardStats;
 import com.example.BE.dto.admin.response.SessionResponse;
 import com.example.BE.dto.admin.response.UserResponse;
-import com.example.BE.dto.user.response.ProfileResponse;
 import com.example.BE.enums.Role;
 import com.example.BE.exception.BadRequestException;
 import com.example.BE.exception.NotFoundException;
-import com.example.BE.model.BookingStatus;
 import com.example.BE.model.UserModel;
 import com.example.BE.model.UserSession;
 import com.example.BE.repository.*;
@@ -21,9 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import java.time.*;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -87,9 +83,6 @@ public class AdminServiceImpl implements AdminService {
                 stats.getTotalRevenue()
 
 
-
-
-
         );
     }
 
@@ -97,7 +90,7 @@ public class AdminServiceImpl implements AdminService {
     public UserResponse changeRole(Long id,ChangeRoleRequest request) {
         UserModel user  = userRepository.findById(id).orElseThrow(()
                 -> new NotFoundException("User not found"));
-        if(user.getRole().equals(Role.ADMIN)){
+        if(user.getRole().equals(Role.SUPER_ADMIN)){
             System.out.println("HELLO AMIN");
         }
         if (user.getRole() == request.role()) {
@@ -140,7 +133,6 @@ public class AdminServiceImpl implements AdminService {
                 session.getRevokedAt()
         )).toList() ;
     }
-
 
     private UserResponse mapToResponse(UserModel userModel) {
         return new UserResponse(
