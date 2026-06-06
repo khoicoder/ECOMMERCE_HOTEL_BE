@@ -1,14 +1,10 @@
 package com.example.BE.model;
 
 import com.example.BE.audit.BaseAuditable;
+import com.example.BE.enums.RoomStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.io.Serializable;
 
 @Entity
 @Getter
@@ -27,7 +23,6 @@ public class RoomModel extends BaseAuditable {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private RoomStatus status;
-
     @ManyToOne
     @JoinColumn(name = "hotel_id")
     @JsonBackReference

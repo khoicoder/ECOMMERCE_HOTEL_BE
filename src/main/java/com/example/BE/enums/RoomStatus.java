@@ -1,8 +1,6 @@
-package com.example.BE.model;
+package com.example.BE.enums;
 
-import jakarta.persistence.Entity;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 
@@ -10,8 +8,10 @@ public enum RoomStatus {
     AVAILABLE("Phòng trống"),
     OCCUPIED("Đang có khách"),
     MAINTENANCE("Đang bảo trì"),
-    DIRTY("Chưa dọn dẹp"),
-    BOOKED("Đã được đặt trước");
+    CLEANING("Chưa dọn dẹp"),
+    BOOKED("Đã được đặt trước"),
+    OUT_OF_SERVICE("Đã dừng phục vụ");
+
     private final String displayValue;
     private RoomStatus(String displayValue) {
         this.displayValue = displayValue;

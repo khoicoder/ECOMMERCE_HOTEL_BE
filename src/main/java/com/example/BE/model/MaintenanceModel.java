@@ -1,0 +1,57 @@
+package com.example.BE.model;
+
+import com.example.BE.enums.MaintenanceStatus;
+import com.example.BE.enums.MaintenanceType;
+import com.sun.tools.javac.Main;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+//Maintenance = ghi nhận sự cố + theo dõi xử lý + cập nhật trạng thái phòng/thiết bị
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "maintenance_tickets")
+public class MaintenanceModel {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Enumerated(EnumType.STRING)
+    private MaintenanceType maintenanceType;
+    private String hotelName;
+    private String title;
+    private String description;
+    @Enumerated(EnumType.STRING)
+    private MaintenanceStatus maintenanceStatus;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime completedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hotel_id")
+    private HotelModel hotel;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id")
+    private RoomModel roomModel;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private UserModel createdBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to")
+    private UserModel assignedTo;
+
+
+
+
+
+}

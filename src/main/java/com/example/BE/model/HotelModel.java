@@ -31,6 +31,8 @@ public class HotelModel extends BaseAuditable {
 
     private String image;
 
+    private String status;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 
