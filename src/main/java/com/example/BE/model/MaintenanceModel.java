@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 public class MaintenanceModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name ="maintenance_id")
     private Long id;
 
     @Enumerated(EnumType.STRING)
@@ -31,27 +32,25 @@ public class MaintenanceModel {
     private String description;
     @Enumerated(EnumType.STRING)
     private MaintenanceStatus maintenanceStatus;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime completedAt;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id")
     private HotelModel hotel;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name ="equipment_id")
+    private EquipmentModel equipment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
-    private RoomModel roomModel;
+    private RoomModel room;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private UserModel createdBy;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to")
     private UserModel assignedTo;
-
-
-
-
 
 }

@@ -2,13 +2,13 @@ package com.example.BE.dto.admin.response;
 
 import com.example.BE.enums.MaintenanceStatus;
 import com.example.BE.enums.MaintenanceType;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import com.example.BE.model.UserModel;
+
 
 import java.time.LocalDateTime;
 
-public record MaintanceTicketResponse(
+public record MaintenanceTicketResponse(
         Long id,
         Long hotelId,
         Long roomId,
@@ -16,9 +16,12 @@ public record MaintanceTicketResponse(
         String title,
         String description,
         MaintenanceStatus status,
-        MaintenanceType Type,
+        MaintenanceType type,
+        Long createdBy,
         LocalDateTime createdAt,
-        LocalDateTime completedAt
+        LocalDateTime updatedAt,
+        String createdByName,
+        String createdByRole
 ) {
 
 }
