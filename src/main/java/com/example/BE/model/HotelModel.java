@@ -18,6 +18,7 @@ public class HotelModel extends BaseAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name ="hotel_id")
     private Long id;
 
     private String name;
@@ -36,7 +37,7 @@ public class HotelModel extends BaseAuditable {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "hotels", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 
     @JsonManagedReference
     private List<RoomModel> rooms;

@@ -16,19 +16,25 @@ public class EquipmentModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name ="equipment_id")
+    private Long EquipmentId;
 
     private String name; //tên thiết bị tv,tủ lạnh..
     private String brand; // mã nhãn hàng
     private String serialNumber; //seri nếu có
 
+
     @Enumerated(EnumType.STRING)
     private EquipmentStatus status;
-    private String note;
+    private String description;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name ="hotel_id")
+    private HotelModel hotel;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
     private RoomModel room;
+
 }

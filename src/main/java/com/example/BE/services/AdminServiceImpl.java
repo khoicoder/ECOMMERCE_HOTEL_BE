@@ -67,7 +67,6 @@ public class AdminServiceImpl implements AdminService {
     public DashboardResponse getDashboard() {
         DashboardStats stats = dashboardRepository.getDashboardStats();
 
-
         return new DashboardResponse(
                 stats.getTotalUsers(),
                 stats.getTotalAdmins(),
