@@ -16,7 +16,7 @@ public class CreateMaintenanceTicketRequest {
     private Long createdById;
     private Long hotelId;
     private Long roomId;
-    private Long equipment;
+    private Long equipmentId;
     private String title;
 
     private String description;
