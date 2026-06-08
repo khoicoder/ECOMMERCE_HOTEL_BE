@@ -1,4 +1,4 @@
-package com.example.BE.services;
+package com.example.BE.services.Equipment;
 
 import com.example.BE.dto.admin.request.CreateEquipmentRequest;
 import com.example.BE.dto.admin.response.EquipmentResponse;
@@ -11,7 +11,6 @@ import com.example.BE.model.RoomModel;
 import com.example.BE.repository.EquipmentRepository;
 import com.example.BE.repository.HotelRepository;
 import com.example.BE.repository.RoomRepository;
-import com.example.BE.repository.UserRepository;
 import lombok.AllArgsConstructor;
 
 import lombok.NoArgsConstructor;

@@ -1,13 +1,9 @@
-package com.example.BE.services;
+package com.example.BE.services.Equipment;
 
 import com.example.BE.dto.admin.request.CreateEquipmentRequest;
 import com.example.BE.dto.admin.response.EquipmentResponse;
 import com.example.BE.enums.EquipmentStatus;
-import com.example.BE.model.HotelModel;
-import org.springframework.cglib.core.Local;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface EquipmentService {

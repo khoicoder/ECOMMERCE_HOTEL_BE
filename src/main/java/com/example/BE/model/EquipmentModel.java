@@ -17,7 +17,7 @@ public class EquipmentModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name ="equipment_id")
-    private Long EquipmentId;
+    private Long equipmentId;
 
     private String name; //tên thiết bị tv,tủ lạnh..
     private String brand; // mã nhãn hàng
