@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MaintenanceRepository extends JpaRepository<MaintenanceModel, Long> {
-    List<MaintenanceModel> findByHotelId(Long hotelId);
-    List<MaintenanceModel> findByStatus(MaintenanceStatus status);
-    List<MaintenanceModel> findByEquipmentId(Long equipmentId);
-    List<MaintenanceModel> findByRoomId(Long roomId);
-    List<MaintenanceModel> findByAssignedUserId(Long userId);
-    List<MaintenanceModel> findByHotelIdAndStatus(Long hotelId, MaintenanceStatus status);
+    List<MaintenanceModel> findByHotel_Id(Long hotelId);
+    List<MaintenanceModel> findByMaintenanceStatus(MaintenanceStatus maintenanceStatus);
+    List<MaintenanceModel> findByEquipment_EquipmentId(Long equipmentId);
+    List<MaintenanceModel> findByRoom_Id(Long roomId);
+    List<MaintenanceModel> findByAssignedTo_Id(Long userId);
+
 
 
 }

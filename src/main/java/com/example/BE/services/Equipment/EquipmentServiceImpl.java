@@ -1,6 +1,7 @@
 package com.example.BE.services.Equipment;
 
 import com.example.BE.dto.admin.request.CreateEquipmentRequest;
+import com.example.BE.dto.admin.request.UpdateEquipmentStatusRequest;
 import com.example.BE.dto.admin.response.EquipmentResponse;
 import com.example.BE.enums.EquipmentStatus;
 import com.example.BE.exception.BadRequestException;
@@ -23,7 +24,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
+
 public class EquipmentServiceImpl implements EquipmentService {
     private  EquipmentRepository equipmentRepository;
     private HotelRepository hotelRepository;
@@ -32,7 +33,7 @@ public class EquipmentServiceImpl implements EquipmentService {
 
         @Override
         @Transactional
-        public EquipmentResponse create(CreateEquipmentRequest request) {
+        public EquipmentResponse createEquipment(CreateEquipmentRequest request) {
             HotelModel hotel = hotelRepository.findById(request.getHotelId()).orElseThrow(()->
                     new NotFoundException("Hotel Not Found"));
             EquipmentModel equipment = new EquipmentModel();
@@ -72,10 +73,10 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public List<EquipmentResponse> getAllEquipmentWorkingInHotel(EquipmentStatus status,Long hotelId) {
+    public List<EquipmentResponse> getAllEquipmentWorkingInHotel(EquipmentStatus statusWorking,Long hotelId) {
             EquipmentModel equiment = equipmentRepository.findById(hotelId).orElseThrow(()->
                     new  NotFoundException("Equipment Not Found"+ hotelId));
-            if(status != EquipmentStatus.WORKING){
+            if(statusWorking != EquipmentStatus.WORKING){
                 throw new BadRequestException("Invalid Status");
             }
 
@@ -83,15 +84,23 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public List<EquipmentResponse> getByHotelId(Long hotelId) {
-        return List.of();
+    public List<EquipmentResponse> getAllByHotelId(Long hotelId) {
+            hotelRepository.findById(hotelId).orElseThrow(()->
+                    new   NotFoundException("Hotel Not Found"+ hotelId));
+            List<EquipmentModel> equipment = equipmentRepository.findByHotel(hotelId);
+            if (equipment.isEmpty()) {
+                throw new NotFoundException("Equipment Not Found In Hotel Id"+hotelId);
+            }
+
+
+        return equipment.stream().map(this::mapToEquipmentResponse).toList();
     }
 
     @Override
-    public EquipmentResponse updateEquipmentStatus(Long id, EquipmentStatus status) {
+    public EquipmentResponse updateEquipmentStatus(Long id, UpdateEquipmentStatusRequest requestStatus) {
             EquipmentModel equipment = equipmentRepository.findById(id).orElseThrow(()
                     -> new   NotFoundException("Equipment Not Found"+ id));
-            equipment.setStatus(status);
+            equipment.setStatus(requestStatus.getStatus());
             equipment.setUpdatedAt(LocalDateTime.now());
 
 
