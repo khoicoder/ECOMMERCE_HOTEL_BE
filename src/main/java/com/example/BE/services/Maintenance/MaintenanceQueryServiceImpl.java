@@ -20,7 +20,7 @@ public class MaintenanceQueryServiceImpl implements MaintenanceQueryService {
 
     @Override
     public List<MaintenanceTicketResponse> getMaintenanceByHotelId(Long hotelId) {
-        List<MaintenanceModel> maintenances = maintenanceRepository.findByHotelId(hotelId);
+        List<MaintenanceModel> maintenances = maintenanceRepository.findByHotel_Id(hotelId);
         if (maintenances.isEmpty()) {
             throw new NotFoundException("Maintenance not found for hotelId = " + hotelId);
         }
@@ -37,7 +37,7 @@ public class MaintenanceQueryServiceImpl implements MaintenanceQueryService {
 
     @Override
     public List<MaintenanceTicketResponse> getMaintenanceByStatus(MaintenanceStatus maintenanceStatus) {
-        List<MaintenanceModel> maintenances = maintenanceRepository.findByStatus(maintenanceStatus);
+        List<MaintenanceModel> maintenances = maintenanceRepository.findByMaintenanceStatus(maintenanceStatus);
         if (maintenances.isEmpty()) {
             throw new NotFoundException("No maintenance found with status = " + maintenanceStatus);
         }
@@ -48,7 +48,7 @@ public class MaintenanceQueryServiceImpl implements MaintenanceQueryService {
 
     @Override
     public List<MaintenanceTicketResponse> getMaintenanceByEquipment(Long equipmentId) {
-        List<MaintenanceModel> maintenances = maintenanceRepository.findByEquipmentId(equipmentId);
+        List<MaintenanceModel> maintenances = maintenanceRepository.findByEquipment_EquipmentId(equipmentId);
         if (maintenances.isEmpty()) {
             throw new NotFoundException("No maintenance found for equipmentId = " + equipmentId);
         }
@@ -57,7 +57,7 @@ public class MaintenanceQueryServiceImpl implements MaintenanceQueryService {
 
     @Override
     public List<MaintenanceTicketResponse> getMaintenanceByRoom(Long roomId) {
-        List<MaintenanceModel> maintenances = maintenanceRepository.findByRoomId(roomId);
+        List<MaintenanceModel> maintenances = maintenanceRepository.findByRoom_Id(roomId);
         if (maintenances.isEmpty()) {
             throw new NotFoundException("No maintenance found for roomId = " + roomId);
         }
@@ -66,7 +66,7 @@ public class MaintenanceQueryServiceImpl implements MaintenanceQueryService {
 
     @Override
     public List<MaintenanceTicketResponse> getMaintenanceByAssignedUser(Long userId) {
-        List<MaintenanceModel> maintenances = maintenanceRepository.findByAssignedUserId(userId);
+        List<MaintenanceModel> maintenances = maintenanceRepository.findByAssignedTo_Id(userId);
         if (maintenances.isEmpty()) {
             throw new NotFoundException("No maintenance found for assigned userId = " + userId);
         }

@@ -37,7 +37,7 @@ public class HotelModel extends BaseAuditable {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @OneToMany(mappedBy = "hotels", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 
     @JsonManagedReference
     private List<RoomModel> rooms;

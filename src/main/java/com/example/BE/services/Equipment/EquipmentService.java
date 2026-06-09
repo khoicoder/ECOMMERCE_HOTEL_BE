@@ -1,18 +1,19 @@
 package com.example.BE.services.Equipment;
 
 import com.example.BE.dto.admin.request.CreateEquipmentRequest;
+import com.example.BE.dto.admin.request.UpdateEquipmentStatusRequest;
 import com.example.BE.dto.admin.response.EquipmentResponse;
 import com.example.BE.enums.EquipmentStatus;
 
 import java.util.List;
 
 public interface EquipmentService {
-    EquipmentResponse create(CreateEquipmentRequest request);
+    EquipmentResponse createEquipment(CreateEquipmentRequest request);
     EquipmentResponse getEquipmentById(Long id);
-    List<EquipmentResponse> getAllEquipmentWorkingInHotel(EquipmentStatus status, Long hotelId);
-    //List<EquipmentResponse> getAllEquipmentWorking();
-    List<EquipmentResponse> getByHotelId(Long hotelId);
-    EquipmentResponse updateEquipmentStatus(Long id, EquipmentStatus status);
+    List<EquipmentResponse> getAllEquipmentWorkingInHotel(EquipmentStatus statusWorking, Long hotelId);
+    List<EquipmentResponse> getAllByHotelId(Long hotelId);
+    EquipmentResponse updateEquipmentStatus(Long id, UpdateEquipmentStatusRequest requestStatus);
     void delete(Long id);
+
 
 }

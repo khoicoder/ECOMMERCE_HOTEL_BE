@@ -10,24 +10,26 @@ import com.example.BE.services.Maintenance.MaintenanceHistoryService;
 import com.example.BE.services.Maintenance.MaintenanceQueryService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/hotels")
+@RequestMapping("/api")
 public class MaintenanceController {
     private final MaintenanceCommandService maintenanceCommandService;
     private final MaintenanceQueryService maintenanceQueryService;
     private final MaintenanceHistoryService maintenanceHistoryService;
     //Tạo maintenance
     @PostMapping
-    public MaintenanceTicketResponse createMaintenance(@RequestBody CreateMaintenanceTicketRequest request, Authentication authentication){
-        return maintenanceCommandService.createMaintenance(request,authentication);
+    public ResponseEntity<MaintenanceTicketResponse> createMaintenance(@RequestBody CreateMaintenanceTicketRequest request, Authentication authentication){
+        return ResponseEntity.status(HttpStatus.CREATED).body(maintenanceCommandService.createMaintenance(request,authentication));
     }
     @PutMapping("/maintenance/{id}")
     public MaintenanceTicketResponse updateMaintenance(@PathVariable Long maintenanceId,
@@ -35,7 +37,7 @@ public class MaintenanceController {
         return maintenanceCommandService.updateMaintenance(maintenanceId,request);
 
     }
-    @PutMapping("/{hotelId}//maintenance/{id}")
+    @PutMapping("/hotels/{hotelId}/maintenance/{id}")
     public MaintenanceTicketResponse updateMainternaceByHotelId(@PathVariable Long hotelId, @PathVariable Long maintenanceId,@RequestBody UpdateMaintenaceRequest request){
         return maintenanceCommandService.updateMaintenanceByHotelId(hotelId,maintenanceId,request);
     }
@@ -43,12 +45,12 @@ public class MaintenanceController {
     public MaintenanceTicketResponse updateMaintenanceStatus(@PathVariable Long hotelId,@PathVariable Long maintenainceId,@RequestBody UpdateMaintanceStatusRequest request){
         return maintenanceCommandService.updateMaintenanceStatus(hotelId,maintenainceId,request.getStatus());
     }
-    @PutMapping("/{hotelId}/maintenance/{id}")
+    @PutMapping("/maintenance/{hotelId}/maintenance/{id}")
     public MaintenanceTicketResponse reopenMaintenance(@PathVariable Long maintenanceId,@PathVariable Long hotelId){
 
         return null;
     }
-    @GetMapping("/{hotelId}/maintenance/")
+    @GetMapping("/hotels/{hotelId}/maintenance")
     public ResponseEntity<List<MaintenanceTicketResponse>> getMaintenanceByHotelId(@PathVariable Long hotelId){
         return ResponseEntity.ok(maintenanceQueryService.getMaintenanceByHotelId(hotelId));
     }
@@ -74,7 +76,9 @@ public class MaintenanceController {
     }
 
 
-    //querrygetMaintenanceByHotelId
+
+
+
 
 
 
