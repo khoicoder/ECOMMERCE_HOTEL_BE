@@ -7,7 +7,7 @@ import com.example.BE.enums.MaintenanceStatus;
 import org.springframework.security.core.Authentication;
 
 //tạo/sửa/xóa, đổi trạng thái.
-public interface MaintenanceCommandService {
+public interface    MaintenanceCommandService {
     MaintenanceTicketResponse createMaintenance(CreateMaintenanceTicketRequest request, Authentication authentication);
     MaintenanceTicketResponse updateMaintenance(Long maintenanceId,UpdateMaintenaceRequest request);
     MaintenanceTicketResponse updateMaintenanceByHotelId(Long hotelId,Long maintenanceId,UpdateMaintenaceRequest request);
