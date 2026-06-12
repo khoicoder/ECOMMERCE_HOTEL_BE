@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Getter
 @Setter
@@ -19,7 +21,7 @@ public class RoomModel extends BaseAuditable {
     private Long id;
     private String name;
     private String type;
-    private Double price;
+    private BigDecimal price;
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private RoomStatus status;

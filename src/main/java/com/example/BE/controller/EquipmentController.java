@@ -35,7 +35,7 @@ public class EquipmentController {
     public ResponseEntity<List<EquipmentResponse>> getAllEquipmentByHotelId(@PathVariable Long hotelId){
         return ResponseEntity.ok(equipmentService.getAllByHotelId(hotelId));
     }
-    @PatchMapping("/equipment")
+    @PatchMapping("/equipment/{id}")
     public ResponseEntity<EquipmentResponse> updateEquipment(@PathVariable Long id,@RequestBody UpdateEquipmentStatusRequest request) {
         return ResponseEntity.ok(equipmentService.updateEquipmentStatus(id, request));
     }

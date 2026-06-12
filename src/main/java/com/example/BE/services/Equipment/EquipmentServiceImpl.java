@@ -74,19 +74,21 @@ public class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public List<EquipmentResponse> getAllEquipmentWorkingInHotel(EquipmentStatus statusWorking,Long hotelId) {
-            EquipmentModel equiment = equipmentRepository.findById(hotelId).orElseThrow(()->
-                    new  NotFoundException("Equipment Not Found"+ hotelId));
-            if(statusWorking != EquipmentStatus.WORKING){
+            HotelModel hotel = hotelRepository.findById(hotelId).orElseThrow(()
+                    ->new  NotFoundException("Hotel Not Found"+ hotelId));
+            List<EquipmentModel> equipment = equipmentRepository.findByHotel(hotelId);
+
+            if(equipment.isEmpty()){
                 throw new BadRequestException("Invalid Status");
             }
 
-        return null;
+        return equipment.stream().map(this::mapToEquipmentResponse).toList();
     }
 
     @Override
     public List<EquipmentResponse> getAllByHotelId(Long hotelId) {
             hotelRepository.findById(hotelId).orElseThrow(()->
-                    new   NotFoundException("Hotel Not Found"+ hotelId));
+                    new NotFoundException("Hotel Not Found"+ hotelId));
             List<EquipmentModel> equipment = equipmentRepository.findByHotel(hotelId);
             if (equipment.isEmpty()) {
                 throw new NotFoundException("Equipment Not Found In Hotel Id"+hotelId);
