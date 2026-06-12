@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -28,7 +29,7 @@ public class HotelModel extends BaseAuditable {
     private Double rating;
 
     @Column(name = "price_from")
-    private Double priceFrom;
+    private BigDecimal priceFrom;
 
     private String image;
 

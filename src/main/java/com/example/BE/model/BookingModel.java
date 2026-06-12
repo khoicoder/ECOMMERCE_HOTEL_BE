@@ -8,10 +8,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 @Entity
 @Data
-@Table(name ="bookings")
+@Table(name ="bookings",indexes = {@Index(name ="idx_booking_dates",columnList = "Check_in_date, Check_out_date",unique = true)})
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -24,7 +26,7 @@ public class BookingModel extends BaseAuditable {
     @Column(name ="check_out_date", nullable = false)
     private LocalDate checkOutDate;
     @Column(name ="total_price",nullable = false)
-    private double totalPrice;
+    private BigDecimal totalPrice;
     @Enumerated(EnumType.STRING)
     @Column(name = "room_status", nullable = false)
     private BookingStatus status =  BookingStatus.PENDING;
