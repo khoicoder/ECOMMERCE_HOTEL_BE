@@ -1,20 +1,21 @@
 package com.example.scraper.controller;
 
+import com.example.scraper.model.Response.CrawlResultResponse;
 import com.example.scraper.service.HotelDataSyncService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/crawl")
+@RequiredArgsConstructor
 public class CrawlController {
-    @Autowired
-    private HotelDataSyncService hotelDataSyncService;
+
+    private final HotelDataSyncService hotelDataSyncService;
 
     @GetMapping("/run")
-    public String triggerCrawl(){
-        hotelDataSyncService.SyncHotel();
-        return "Crawl job started!...............";
+    public CrawlResultResponse triggerCrawl() {
+        return hotelDataSyncService.syncHotels();
     }
 }
