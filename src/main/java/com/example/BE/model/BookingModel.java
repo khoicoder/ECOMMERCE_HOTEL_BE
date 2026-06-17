@@ -13,22 +13,22 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 @Entity
 @Data
-@Table(name ="bookings",indexes = {@Index(name ="idx_booking_dates",columnList = "Check_in_date, Check_out_date",unique = true)})
+@Table(name ="bookings",indexes = {@Index(name ="idx_booking_dates",columnList = "check_in_date, check_out_date")})
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class BookingModel extends BaseAuditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-    @Column(name  = "Check_in_date", nullable = false)
+    private Long id;
+    @Column(name  = "check_in_date", nullable = false)
     private LocalDate checkInDate;
     @Column(name ="check_out_date", nullable = false)
     private LocalDate checkOutDate;
     @Column(name ="total_price",nullable = false)
     private BigDecimal totalPrice;
     @Enumerated(EnumType.STRING)
-    @Column(name = "room_status", nullable = false)
+    @Column(name = "booking_status", nullable = false)
     private BookingStatus status =  BookingStatus.PENDING;
     // Mối quan hệ: Nhiều lượt đặt phòng thuộc về một phòng
     @ManyToOne(fetch = FetchType.LAZY)

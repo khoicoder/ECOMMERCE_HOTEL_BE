@@ -9,6 +9,7 @@ public enum BookingStatus {
     CANCELLED("Đã hủy"),
     CHECKED_IN("Đã nhận phòng"),
     CHECKED_OUT("Đã hủy phòng");
+    
     private final String displayValue;
     BookingStatus(String displayValue) {
         this.displayValue = displayValue;

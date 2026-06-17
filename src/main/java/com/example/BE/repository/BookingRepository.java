@@ -1,29 +1,33 @@
-//package com.example.BE.repository;
-//
-//import com.example.BE.model.BookingModel;
-//import com.example.BE.enums.BookingStatus;
-//import org.springframework.data.jpa.repository.JpaRepository;
-//import org.springframework.data.jpa.repository.Query;
-//
-//import java.math.BigDecimal;
-//import java.time.Instant;
-//
-//public interface BookingRepository extends JpaRepository<BookingModel,Long> {
-//
-//    long count();
-//    long countByStatus(BookingStatus status);
-//    @Query("""
-//        select count(b) from Booking b WHERE b.createdAt between :start and :end
-//"""
-//     )long countTodayBookings(
-//             Instant start,
-//             Instant end
-//    );
-//
-//    @Query("""
-//    select coalesce(sum(b.totalPrice),0)
-//    from Booking b
-//    where b.status = 'CONFIRMED'
-//""")
-//    BigDecimal getTotalRevenue();
-//}
+package com.example.BE.repository;
+
+import com.example.BE.dto.user.request.BookingRequest;
+import com.example.BE.dto.user.response.BookingResponse;
+import com.example.BE.model.BookingModel;
+import com.example.BE.model.UserModel;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface BookingRepository extends JpaRepository<BookingModel, Long> {
+    @Query("""
+        SELECT COUNT(b) > 0
+        FROM BookingModel b
+        WHERE b.room.id = :roomId
+        AND b.status <> com.example.BE.enums.BookingStatus.CANCELLED
+        AND b.checkInDate < :checkOutDate
+        AND b.checkOutDate > :checkInDate
+    """)
+    boolean existsOverlappingBooking(
+            @Param("roomId") Long roomId,
+            @Param("checkInDate") LocalDate checkInDate,
+            @Param("checkOutDate") LocalDate checkOutDate
+    );
+
+}
+
