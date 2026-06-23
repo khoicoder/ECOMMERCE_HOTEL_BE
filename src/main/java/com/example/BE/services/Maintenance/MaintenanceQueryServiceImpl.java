@@ -83,13 +83,10 @@ public class MaintenanceQueryServiceImpl implements MaintenanceQueryService {
                 maintenance.getDescription(),
                 maintenance.getMaintenanceStatus(),
                 maintenance.getMaintenanceType(),
-                maintenance.getCreatedBy() != null ? maintenance.getCreatedBy().getId() : null,
+                maintenance.getCreatedBy(),
                 maintenance.getCreatedAt(),
                 maintenance.getUpdatedAt(),
-                maintenance.getCreatedBy() != null ? maintenance.getCreatedBy().getUsername() : null,
-                maintenance.getCreatedBy() != null && maintenance.getCreatedBy().getRole() != null
-                        ? maintenance.getCreatedBy().getRole().name()
-                        : null
-        );
+                maintenance.getAssignedTo().getUsername(),
+                maintenance.getAssignedTo().getRole());
     }
 }

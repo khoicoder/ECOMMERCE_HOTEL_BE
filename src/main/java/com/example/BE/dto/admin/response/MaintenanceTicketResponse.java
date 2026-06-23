@@ -1,11 +1,14 @@
 package com.example.BE.dto.admin.response;
 
+import com.example.BE.enums.HotelStaffPosition;
 import com.example.BE.enums.MaintenanceStatus;
 import com.example.BE.enums.MaintenanceType;
 
+import com.example.BE.enums.Role;
 import com.example.BE.model.UserModel;
 
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 public record MaintenanceTicketResponse(
@@ -18,10 +21,10 @@ public record MaintenanceTicketResponse(
         MaintenanceStatus status,
         MaintenanceType type,
         Long createdBy,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
+        Instant createdAt,
+        Instant updatedAt,
         String createdByName,
-        String createdByRole
+        Role createdByRole
 ) {
 
 }

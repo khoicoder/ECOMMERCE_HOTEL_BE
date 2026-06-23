@@ -20,7 +20,7 @@ public class UserModel extends BaseAuditable {
     private String username;
     private String password;
     @Enumerated(EnumType.STRING)
-    private Role  role;
+    private Role role;
     private String phone;
     private String address;
     private String avatarUrl;

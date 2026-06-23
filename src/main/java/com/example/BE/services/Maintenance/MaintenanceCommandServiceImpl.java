@@ -22,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Service
@@ -59,7 +60,7 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
                     -> new NotFoundException("Room not found with id :"+request.roomId()));
             maintenance.setRoom(room);
         }
-        maintenance.setUpdatedAt(LocalDateTime.now());
+        maintenance.setUpdatedAt(Instant.now());
         MaintenanceModel save = maintenanceRepository.save(maintenance);
 
 
@@ -89,7 +90,7 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
                     -> new NotFoundException("Room not found with id :"+request.roomId()));
             maintenance.setRoom(room);
         }
-        maintenance.setUpdatedAt(LocalDateTime.now());
+        maintenance.setUpdatedAt(Instant.now());
         MaintenanceModel save = maintenanceRepository.save(maintenance);
 
 
@@ -109,9 +110,9 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
 
         MaintenanceModel maintenance = new MaintenanceModel();
         maintenance.setHotel(hotel);
-        maintenance.setCreatedBy(creator);
-        maintenance.setCreatedAt(LocalDateTime.now());
-        maintenance.setUpdatedAt(LocalDateTime.now());
+        maintenance.setCreatedBy(creator.getCreatedBy());
+        maintenance.setCreatedAt(creator.getCreatedAt());
+        maintenance.setUpdatedAt(creator.getUpdatedAt());
         maintenance.setTitle(request.getTitle());
         maintenance.setDescription(request.getDescription());
         maintenance.setMaintenanceStatus(MaintenanceStatus.PENDING);
@@ -154,10 +155,10 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
         }
 
         maintenance.setMaintenanceStatus(newStatus);
-        maintenance.setUpdatedAt(LocalDateTime.now());
+        maintenance.setUpdatedAt(Instant.now());
 
         if (newStatus == MaintenanceStatus.COMPLETED) {
-            maintenance.setCompletedAt(LocalDateTime.now());
+            maintenance.setCompletedAt(Instant.now());
         }
 
         return mapToResponse(maintenanceRepository.save(maintenance));
@@ -175,7 +176,7 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
         }
 
         maintenance.setMaintenanceStatus(MaintenanceStatus.PENDING);
-        maintenance.setUpdatedAt(LocalDateTime.now());
+        maintenance.setUpdatedAt(Instant.now());
         maintenance.setCompletedAt(null);
 
         return mapToResponse(maintenanceRepository.save(maintenance));
@@ -214,13 +215,16 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
                 maintenance.getDescription(),
                 maintenance.getMaintenanceStatus(),
                 maintenance.getMaintenanceType(),
-                maintenance.getCreatedBy() != null ? maintenance.getCreatedBy().getId() : null,
+                maintenance.getCreatedBy(),
                 maintenance.getCreatedAt(),
                 maintenance.getUpdatedAt(),
-                maintenance.getCreatedBy() != null ? maintenance.getCreatedBy().getUsername() : null,
-                maintenance.getCreatedBy() != null && maintenance.getCreatedBy().getRole() != null
-                        ? maintenance.getCreatedBy().getRole().name()
-                        : null
+                maintenance.getAssignedTo().getUsername(),
+                maintenance.getAssignedTo().getRole()
+
+
+
+
+
         );
     }
 }
