@@ -1,5 +1,6 @@
 package com.example.BE.model;
 
+import com.example.BE.audit.BaseAuditable;
 import com.example.BE.enums.MaintenanceStatus;
 import com.example.BE.enums.MaintenanceType;
 import com.sun.tools.javac.Main;
@@ -19,7 +20,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "maintenance_tickets")
-public class MaintenanceModel {
+public class MaintenanceModel extends BaseAuditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name ="maintenance_id")
@@ -27,14 +28,10 @@ public class MaintenanceModel {
 
     @Enumerated(EnumType.STRING)
     private MaintenanceType maintenanceType;
-    private String hotelName;
     private String title;
     private String description;
     @Enumerated(EnumType.STRING)
     private MaintenanceStatus maintenanceStatus;
-
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private LocalDateTime completedAt;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id")
@@ -46,11 +43,9 @@ public class MaintenanceModel {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
     private RoomModel room;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
-    private UserModel createdBy;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to")
     private UserModel assignedTo;
-
+    //https://dbdiagram.io/d/6a3a325c5c789b8acbdfe82f
 }

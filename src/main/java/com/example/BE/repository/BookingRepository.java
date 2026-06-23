@@ -1,17 +1,12 @@
 package com.example.BE.repository;
-
-import com.example.BE.dto.user.request.BookingRequest;
-import com.example.BE.dto.user.response.BookingResponse;
 import com.example.BE.model.BookingModel;
-import com.example.BE.model.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+
 
 @Repository
 public interface BookingRepository extends JpaRepository<BookingModel, Long> {
