@@ -2,7 +2,7 @@ package com.example.BE.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.Id;
+
 
 @Entity
 @NoArgsConstructor

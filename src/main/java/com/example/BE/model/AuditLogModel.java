@@ -1,33 +1,33 @@
-package com.example.BE.model;
-
 import com.example.BE.audit.BaseAuditable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
+import lombok.Setter;
 
 @Entity
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Table(name = "audit_logs")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AuditLogModel extends BaseAuditable {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "audit_id")
     private Long id;
+
     private Long actorId;
+
     private String actionName;
+
     private String action;
+
     private String entityType;
 
     private Long entityId;
+
     @Column(columnDefinition = "TEXT")
     private String description;
-
-    private Instant createdAt;
-
 }

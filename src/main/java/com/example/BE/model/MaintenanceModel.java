@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -29,10 +30,11 @@ public class MaintenanceModel extends BaseAuditable {
     @Enumerated(EnumType.STRING)
     private MaintenanceType maintenanceType;
     private String title;
+
     private String description;
     @Enumerated(EnumType.STRING)
     private MaintenanceStatus maintenanceStatus;
-    private LocalDateTime completedAt;
+    private Instant completedAt;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id")
     private HotelModel hotel;

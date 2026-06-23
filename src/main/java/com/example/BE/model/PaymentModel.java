@@ -7,7 +7,7 @@ import com.example.BE.enums.PaymentProvider;
 import com.example.BE.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.Id;
+
 
 
 import java.math.BigDecimal;
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PaymentModel extends BaseAuditable {
-    @Id
+   @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private BigDecimal amount;
