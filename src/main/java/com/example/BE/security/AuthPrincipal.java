@@ -9,4 +9,4 @@ public record AuthPrincipal(
         String username,
         Role role,
         UUID sessionId
-) {}
+)  {}

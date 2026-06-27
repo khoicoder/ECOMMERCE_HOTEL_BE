@@ -222,9 +222,6 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
                 maintenance.getAssignedTo().getRole()
 
 
-
-
-
         );
     }
 }

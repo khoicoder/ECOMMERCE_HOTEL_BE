@@ -1,21 +1,28 @@
 package com.example.BE.services.Equipment;
 
 import com.example.BE.dto.admin.request.CreateEquipmentRequest;
+import com.example.BE.dto.admin.request.DeleteEquipmentRequest;
 import com.example.BE.dto.admin.request.UpdateEquipmentStatusRequest;
 import com.example.BE.dto.admin.response.EquipmentResponse;
 import com.example.BE.enums.EquipmentStatus;
+import com.example.BE.enums.Role;
 import com.example.BE.exception.BadRequestException;
 import com.example.BE.exception.NotFoundException;
+import com.example.BE.exception.ValidateException;
 import com.example.BE.model.EquipmentModel;
 import com.example.BE.model.HotelModel;
 import com.example.BE.model.RoomModel;
+import com.example.BE.model.UserModel;
 import com.example.BE.repository.EquipmentRepository;
 import com.example.BE.repository.HotelRepository;
 import com.example.BE.repository.RoomRepository;
+import com.example.BE.repository.UserRepository;
+import com.example.BE.security.AuthPrincipal;
 import lombok.AllArgsConstructor;
 
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +36,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     private  EquipmentRepository equipmentRepository;
     private HotelRepository hotelRepository;
     private  RoomRepository roomRepository;
+    private UserRepository userRepository;
 
 
         @Override
@@ -56,6 +64,27 @@ public class EquipmentServiceImpl implements EquipmentService {
             );
 
     }
+
+    @Override
+    public EquipmentResponse deleteEquiment(DeleteEquipmentRequest request) {
+
+            UserModel user = userRepository.findById(request.getUserId()).orElseThrow(()
+                    -> new  NotFoundException("User Not Found"));
+            if(user.getRole() == Role.USER) {
+                new ValidateException("user is not allowed to delete this equipment");
+
+            }
+            EquipmentModel equipment = equipmentRepository.findById(request.getId()).orElseThrow(()
+                    -> new  NotFoundException("Equipment Not Found"));
+            if(equipment.getEquipmentId().equals(request.getId())){
+                equipmentRepository.deleteById(request.getId());
+        }
+
+        EquipmentModel saved  = equipmentRepository.save(equipment);
+        return mapToEquipmentResponse(saved);
+    }
+
+
 
     @Override
     public EquipmentResponse getEquipmentById(Long id) {
