@@ -22,6 +22,11 @@ public class HotelController {
     public List<HotelModel> getHotels() {
         return hotelService.getAll();
     }
+    @GetMapping
+    public HotelModel getHotelById(@RequestParam Long id) {
+        return hotelService.getHotelById(id);
+
+    }
     @PostMapping
     public HotelModel create(@RequestBody HotelModel hotelModel) {
         return hotelService.create(hotelModel);

@@ -1,6 +1,7 @@
 package com.example.BE.model;
 
 import com.example.BE.enums.Role;
+import com.example.BE.enums.RoleConverter;
 import com.example.BE.audit.BaseAuditable;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,7 +20,8 @@ public class UserModel extends BaseAuditable {
     private String email;
     private String username;
     private String password;
-    @Enumerated(EnumType.STRING)
+
+    @Convert(converter = RoleConverter.class)
     private Role role;
     private String phone;
     private String address;

@@ -2,6 +2,7 @@ package com.example.BE.services;
 import com.example.BE.dto.user.response.AuthResponse;
 import com.example.BE.dto.user.request.RegisterRequest;
 
+import com.example.BE.dto.user.response.FindHotelResponse;
 import com.example.BE.enums.Role;
 import com.example.BE.exception.ConflictException;
 import com.example.BE.exception.NotFoundException;
@@ -13,6 +14,7 @@ import com.example.BE.repository.UserSessionRepository;
 import com.example.BE.security.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,10 +30,15 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Data
 public class AuthService {
+    @Autowired
     private final UserRepository userRepository;
+    @Autowired
     private final JwtUtil jwtUtil;
+    @Autowired
     private final PasswordEncoder passwordEncoder;
+    @Autowired
     private final RedisTemplate<String, Object> redisTemplate;
+    @Autowired
     private final UserSessionRepository userSessionRepository;
 
     @Transactional
@@ -175,4 +182,7 @@ public class AuthService {
                 user.getRole());
 
     }
+    public FindHotelResponse findHotel(String hotelName) {}
+
+
 }
