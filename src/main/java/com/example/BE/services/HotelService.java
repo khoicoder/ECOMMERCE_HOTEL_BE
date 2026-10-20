@@ -19,6 +19,9 @@ public class HotelService {
     public List<HotelModel> getAll() {
         return hotelRepository.findAll();
     }
+    public HotelModel getHotelById(Long id) {
+        return hotelRepository.getHotelById(id);
+    }
     public HotelModel create(HotelModel hotelModel) {
         return hotelRepository.save(hotelModel);
     }

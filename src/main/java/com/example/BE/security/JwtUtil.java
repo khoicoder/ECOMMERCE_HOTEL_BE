@@ -75,7 +75,7 @@ public class JwtUtil {
         if (role == null) {
             throw new RuntimeException("Role claim is missing");
         }
-        return Role.valueOf(role);
+        return Role.fromString(role);
     }
     public UUID extractSessionID(String token){
         String sid = parseClaims(token).get("sid",String.class);
