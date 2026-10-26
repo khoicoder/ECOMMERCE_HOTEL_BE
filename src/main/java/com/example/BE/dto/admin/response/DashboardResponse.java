@@ -8,25 +8,33 @@ public record DashboardResponse(
         long activeSessions,
         long totalBookings,
         long totalTodayBookings,
-
-
         long totalHotels,
-
         long pendingBookings,
         long confirmedBookings,
         long cancelledBookings,
         long checkedInBookings,
         long checkedOutBookings,
-
-        BigDecimal totalRevenue
-
-
+        BigDecimal totalRevenue,
+        String roleScope,
+        Long hotelId,
+        String hotelName
 ) {
-    //có thể bổ sung thêm:
-    //Revenue Today
-    //Revenue This Month
-    //Top Hotels
-    //Top Customers
-    //New Users Today
-    //Booking Trend 7 ngày gần nhất
+    public DashboardResponse(
+            long totalUsers,
+            long totalAdmins,
+            long activeSessions,
+            long totalBookings,
+            long totalTodayBookings,
+            long totalHotels,
+            long pendingBookings,
+            long confirmedBookings,
+            long cancelledBookings,
+            long checkedInBookings,
+            long checkedOutBookings,
+            BigDecimal totalRevenue
+    ) {
+        this(totalUsers, totalAdmins, activeSessions, totalBookings, totalTodayBookings,
+                totalHotels, pendingBookings, confirmedBookings, cancelledBookings,
+                checkedInBookings, checkedOutBookings, totalRevenue, "SUPER_ADMIN", null, "Toàn Bộ Hệ Thống");
+    }
 }

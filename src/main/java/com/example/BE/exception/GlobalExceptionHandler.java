@@ -33,6 +33,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
 
     }
+    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse> handleMethodArgumentNotValid(
+            org.springframework.web.bind.MethodArgumentNotValidException ex,
+            HttpServletRequest request
+    ) {
+        String details = ex.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .collect(java.util.stream.Collectors.joining("; "));
+
+        log.warn("VALIDATION_ERROR path={} reason={}", request.getRequestURI(), details);
+
+        ApiErrorResponse err = new ApiErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ErrorCode.VALIDATE_REQUEST.getCode(),
+                details,
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
+    }
+
     @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
     public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolation(
             org.springframework.dao.DataIntegrityViolationException ex,

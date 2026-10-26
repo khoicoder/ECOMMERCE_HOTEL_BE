@@ -1,3 +1,5 @@
+package com.example.BE.model;
+
 import com.example.BE.audit.BaseAuditable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,6 +21,8 @@ public class AuditLogModel extends BaseAuditable {
     private Long id;
 
     private Long actorId;
+
+    private String actorUsername;
 
     private String actionName;
 

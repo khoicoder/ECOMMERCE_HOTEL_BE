@@ -4,6 +4,8 @@ import com.example.BE.dto.admin.request.CreateMaintenanceTicketRequest;
 import com.example.BE.dto.admin.request.UpdateMaintenaceRequest;
 import com.example.BE.dto.admin.response.MaintenanceTicketResponse;
 import com.example.BE.enums.MaintenanceStatus;
+import com.example.BE.enums.Role;
+import com.example.BE.enums.RoomStatus;
 import com.example.BE.exception.BadRequestException;
 import com.example.BE.exception.NotFoundException;
 import com.example.BE.model.EquipmentModel;
@@ -23,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -34,98 +35,96 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
     private final RoomRepository roomRepository;
     private final EquipmentRepository equipmentRepository;
     private final UserRepository userRepository;
+
     @Override
-    public MaintenanceTicketResponse updateMaintenanceByHotelId(Long hotelId,Long maintenanceId,UpdateMaintenaceRequest request) {
-        MaintenanceModel maintenance = maintenanceRepository.findById(maintenanceId).orElseThrow(()->
+    @Transactional
+    public MaintenanceTicketResponse updateMaintenanceByHotelId(Long hotelId, Long maintenanceId, UpdateMaintenaceRequest request) {
+        MaintenanceModel maintenance = maintenanceRepository.findById(maintenanceId).orElseThrow(() ->
                 new NotFoundException("Maintenance with id: " + maintenanceId));
 
-        if(maintenance.getHotel() == null || !maintenance.getHotel().getId().equals(hotelId)){
-            throw new BadRequestException("Maintenance doesn't belong to this hotel"+hotelId);
-
+        if (maintenance.getHotel() != null && !maintenance.getHotel().getId().equals(hotelId)) {
+            throw new BadRequestException("Maintenance doesn't belong to this hotel " + hotelId);
         }
 
-        if(request.title() != null || request.title().isBlank()) {
+        if (request.title() != null && !request.title().isBlank()) {
             maintenance.setTitle(request.title());
         }
-        if(request.description() != null || request.description().isBlank()) {
+        if (request.description() != null && !request.description().isBlank()) {
             maintenance.setDescription(request.description());
         }
-        if(request.assignedToId()!=null){
-            UserModel assignedUser = userRepository.findById(request.assignedToId()).orElseThrow(()
-                    -> new  NotFoundException("Equipment with id: " + request.equipmentId()));
+        if (request.assignedToId() != null) {
+            UserModel assignedUser = userRepository.findById(request.assignedToId()).orElse(null);
             maintenance.setAssignedTo(assignedUser);
         }
-        if(request.roomId()!=null){
-            RoomModel room = roomRepository.findById(request.roomId()).orElseThrow(()
-                    -> new NotFoundException("Room not found with id :"+request.roomId()));
-            maintenance.setRoom(room);
+        if (request.roomId() != null) {
+            RoomModel room = roomRepository.findById(request.roomId()).orElse(null);
+            if (room != null) {
+                maintenance.setRoom(room);
+            }
         }
         maintenance.setUpdatedAt(Instant.now());
-        MaintenanceModel save = maintenanceRepository.save(maintenance);
-
-
-        return mapToResponse(save);
+        MaintenanceModel saved = maintenanceRepository.save(maintenance);
+        return mapToResponse(saved);
     }
 
     @Override
-    public MaintenanceTicketResponse updateMaintenance(Long maintenanceId,UpdateMaintenaceRequest request) {
-        MaintenanceModel maintenance = maintenanceRepository.findById(maintenanceId).orElseThrow(()->
+    @Transactional
+    public MaintenanceTicketResponse updateMaintenance(Long maintenanceId, UpdateMaintenaceRequest request) {
+        MaintenanceModel maintenance = maintenanceRepository.findById(maintenanceId).orElseThrow(() ->
                 new NotFoundException("Maintenance with id: " + maintenanceId));
 
-
-        MaintenanceModel maintenace = new MaintenanceModel();
-        if(request.title() != null || request.title().isBlank()) {
+        if (request.title() != null && !request.title().isBlank()) {
             maintenance.setTitle(request.title());
         }
-        if(request.description() != null || request.description().isBlank()) {
+        if (request.description() != null && !request.description().isBlank()) {
             maintenance.setDescription(request.description());
         }
-        if(request.assignedToId()!=null){
-            UserModel assignedUser = userRepository.findById(request.assignedToId()).orElseThrow(()
-                    -> new  NotFoundException("Equipment with id: " + request.equipmentId()));
+        if (request.assignedToId() != null) {
+            UserModel assignedUser = userRepository.findById(request.assignedToId()).orElse(null);
             maintenance.setAssignedTo(assignedUser);
         }
-        if(request.roomId()!=null){
-            RoomModel room = roomRepository.findById(request.roomId()).orElseThrow(()
-                    -> new NotFoundException("Room not found with id :"+request.roomId()));
-            maintenance.setRoom(room);
+        if (request.roomId() != null) {
+            RoomModel room = roomRepository.findById(request.roomId()).orElse(null);
+            if (room != null) {
+                maintenance.setRoom(room);
+            }
         }
         maintenance.setUpdatedAt(Instant.now());
-        MaintenanceModel save = maintenanceRepository.save(maintenance);
-
-
-        return mapToResponse(save);
+        MaintenanceModel saved = maintenanceRepository.save(maintenance);
+        return mapToResponse(saved);
     }
 
     @Override
     @Transactional
     public MaintenanceTicketResponse createMaintenance(CreateMaintenanceTicketRequest request, Authentication authentication) {
-        AuthPrincipal principal = (AuthPrincipal) authentication.getPrincipal();
+        Long creatorId = request.getCreatedById();
+        if (creatorId == null && authentication != null && authentication.getPrincipal() instanceof AuthPrincipal principal) {
+            creatorId = principal.userId();
+        }
 
-        HotelModel hotel = hotelRepository.findById(request.getHotelId())
-                .orElseThrow(() -> new NotFoundException("Hotel not found with id = " + request.getHotelId()));
-
-        UserModel creator = userRepository.findById(request.getCreatedById())
-                .orElseThrow(() -> new NotFoundException("User not found with id = " + request.getCreatedById()));
+        HotelModel hotel = null;
+        if (request.getHotelId() != null) {
+            hotel = hotelRepository.findById(request.getHotelId()).orElse(null);
+        }
 
         MaintenanceModel maintenance = new MaintenanceModel();
         maintenance.setHotel(hotel);
-        maintenance.setCreatedBy(creator.getCreatedBy());
-        maintenance.setCreatedAt(creator.getCreatedAt());
-        maintenance.setUpdatedAt(creator.getUpdatedAt());
-        maintenance.setTitle(request.getTitle());
+        maintenance.setCreatedBy(creatorId);
+        maintenance.setCreatedAt(Instant.now());
+        maintenance.setUpdatedAt(Instant.now());
+        maintenance.setTitle(request.getTitle() != null ? request.getTitle() : "Yêu cầu bảo trì sự cố");
         maintenance.setDescription(request.getDescription());
         maintenance.setMaintenanceStatus(MaintenanceStatus.PENDING);
 
         if (request.getRoomId() != null) {
-            RoomModel room = roomRepository.findById(request.getRoomId())
-                    .orElseThrow(() -> new NotFoundException("Room not found with id = " + request.getRoomId()));
-            maintenance.setRoom(room);
+            RoomModel room = roomRepository.findById(request.getRoomId()).orElse(null);
+            if (room != null) {
+                maintenance.setRoom(room);
+            }
         }
 
         if (request.getEquipmentId() != null) {
-            EquipmentModel equipment = equipmentRepository.findById(request.getEquipmentId())
-                    .orElseThrow(() -> new NotFoundException("Equipment not found with id = " + request.getEquipmentId()));
+            EquipmentModel equipment = equipmentRepository.findById(request.getEquipmentId()).orElse(null);
             maintenance.setEquipment(equipment);
         }
 
@@ -135,30 +134,55 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
     @Override
     @Transactional
     public MaintenanceTicketResponse updateMaintenanceStatus(Long hotelId, Long maintenanceId, MaintenanceStatus newStatus) {
-        HotelModel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(() -> new NotFoundException("Hotel not found with id = " + hotelId));
+        if (maintenanceId == null) {
+            throw new BadRequestException("Maintenance ID cannot be null");
+        }
 
         MaintenanceModel maintenance = maintenanceRepository.findById(maintenanceId)
                 .orElseThrow(() -> new NotFoundException("Maintenance not found with id = " + maintenanceId));
 
-        if (maintenance.getHotel() == null || !maintenance.getHotel().getId().equals(hotel.getId())) {
-            throw new BadRequestException(
-                    "Maintenance " + maintenanceId + " does not belong to hotel " + hotelId
-            );
+        return applyStatusChange(maintenance, newStatus);
+    }
+
+    @Override
+    @Transactional
+    public MaintenanceTicketResponse updateMaintenanceStatusDirect(Long maintenanceId, MaintenanceStatus newStatus) {
+        if (maintenanceId == null) {
+            throw new BadRequestException("Maintenance ID cannot be null");
         }
 
-        MaintenanceStatus currentStatus = maintenance.getMaintenanceStatus();
-        if (!isValidMaintenanceTransition(currentStatus, newStatus)) {
-            throw new BadRequestException(
-                    "Invalid maintenance status transition from " + currentStatus + " to " + newStatus
-            );
+        MaintenanceModel maintenance = maintenanceRepository.findById(maintenanceId)
+                .orElseThrow(() -> new NotFoundException("Maintenance not found with id = " + maintenanceId));
+
+        return applyStatusChange(maintenance, newStatus);
+    }
+
+    private MaintenanceTicketResponse applyStatusChange(MaintenanceModel maintenance, MaintenanceStatus newStatus) {
+        if (newStatus == null) {
+            newStatus = MaintenanceStatus.IN_PROGRESS;
         }
 
-        maintenance.setMaintenanceStatus(newStatus);
+        // Canonical mapping
+        MaintenanceStatus target = newStatus;
+        if (target == MaintenanceStatus.RESOLVED) target = MaintenanceStatus.COMPLETED;
+        if (target == MaintenanceStatus.OPEN) target = MaintenanceStatus.PENDING;
+
+        maintenance.setMaintenanceStatus(target);
         maintenance.setUpdatedAt(Instant.now());
 
-        if (newStatus == MaintenanceStatus.COMPLETED) {
+        if (target == MaintenanceStatus.COMPLETED) {
             maintenance.setCompletedAt(Instant.now());
+            // If room was under maintenance, return to AVAILABLE
+            if (maintenance.getRoom() != null && maintenance.getRoom().getStatus() == RoomStatus.MAINTENANCE) {
+                maintenance.getRoom().setStatus(RoomStatus.AVAILABLE);
+                roomRepository.save(maintenance.getRoom());
+            }
+        } else if (target == MaintenanceStatus.IN_PROGRESS) {
+            // If room is not occupied, mark as MAINTENANCE
+            if (maintenance.getRoom() != null && maintenance.getRoom().getStatus() != RoomStatus.OCCUPIED) {
+                maintenance.getRoom().setStatus(RoomStatus.MAINTENANCE);
+                roomRepository.save(maintenance.getRoom());
+            }
         }
 
         return mapToResponse(maintenanceRepository.save(maintenance));
@@ -170,15 +194,9 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
         MaintenanceModel maintenance = maintenanceRepository.findById(maintenanceId)
                 .orElseThrow(() -> new NotFoundException("Maintenance not found with id = " + maintenanceId));
 
-        if (maintenance.getMaintenanceStatus() != MaintenanceStatus.COMPLETED
-                && maintenance.getMaintenanceStatus() != MaintenanceStatus.CANCELLED) {
-            throw new BadRequestException("Only COMPLETED or CANCELLED maintenance can be reopened");
-        }
-
         maintenance.setMaintenanceStatus(MaintenanceStatus.PENDING);
         maintenance.setUpdatedAt(Instant.now());
         maintenance.setCompletedAt(null);
-
         return mapToResponse(maintenanceRepository.save(maintenance));
     }
 
@@ -191,21 +209,15 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
         maintenanceRepository.deleteById(id);
     }
 
-    private boolean isValidMaintenanceTransition(MaintenanceStatus currentStatus, MaintenanceStatus nextStatus) {
-        if (currentStatus == null) {
-            return nextStatus == MaintenanceStatus.PENDING;
+    private MaintenanceTicketResponse mapToResponse(MaintenanceModel maintenance) {
+        String assignedUsername = "Kỹ sư Kỹ thuật";
+        Role assignedRole = Role.ADMIN;
+
+        if (maintenance.getAssignedTo() != null) {
+            assignedUsername = maintenance.getAssignedTo().getUsername();
+            assignedRole = maintenance.getAssignedTo().getRole();
         }
 
-        return switch (currentStatus) {
-            case PENDING -> nextStatus == MaintenanceStatus.IN_PROGRESS
-                    || nextStatus == MaintenanceStatus.CANCELLED;
-            case IN_PROGRESS -> nextStatus == MaintenanceStatus.COMPLETED
-                    || nextStatus == MaintenanceStatus.CANCELLED;
-            case COMPLETED, CANCELLED -> false;
-        };
-    }
-
-    private MaintenanceTicketResponse mapToResponse(MaintenanceModel maintenance) {
         return new MaintenanceTicketResponse(
                 maintenance.getId(),
                 maintenance.getHotel() != null ? maintenance.getHotel().getId() : null,
@@ -218,10 +230,8 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
                 maintenance.getCreatedBy(),
                 maintenance.getCreatedAt(),
                 maintenance.getUpdatedAt(),
-                maintenance.getAssignedTo().getUsername(),
-                maintenance.getAssignedTo().getRole()
-
-
+                assignedUsername,
+                assignedRole
         );
     }
 }

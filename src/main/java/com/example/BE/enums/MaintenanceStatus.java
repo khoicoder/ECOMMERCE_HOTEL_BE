@@ -1,22 +1,27 @@
 package com.example.BE.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum MaintenanceStatus {
     PENDING,
+    OPEN,
     IN_PROGRESS,
     COMPLETED,
-    CANCELLED,
-}
+    RESOLVED,
+    CANCELLED;
 
-//PENDING → IN_PROGRESS
-//Ticket đã được nhận xử lý.
-//
-//PENDING → CANCELLED
-//Ticket bị hủy ngay từ đầu.
-//
-//IN_PROGRESS → COMPLETED
-//Đã xử lý xong.
-//
-//IN_PROGRESS → CANCELLED
-//Dừng xử lý vì lý do nào đó.
-//
-//COMPLETED / CANCELLED → không cho đổi nữa`
+    @JsonCreator
+    public static MaintenanceStatus fromString(String val) {
+        if (val == null || val.isBlank()) return PENDING;
+        String upper = val.trim().toUpperCase();
+        if (upper.equals("RESOLVED") || upper.equals("COMPLETED")) return COMPLETED;
+        if (upper.equals("OPEN") || upper.equals("PENDING")) return PENDING;
+        if (upper.equals("IN_PROGRESS") || upper.equals("PROGRESS")) return IN_PROGRESS;
+        if (upper.equals("CANCELLED") || upper.equals("CLOSED")) return CANCELLED;
+        try {
+            return MaintenanceStatus.valueOf(upper);
+        } catch (Exception e) {
+            return PENDING;
+        }
+    }
+}

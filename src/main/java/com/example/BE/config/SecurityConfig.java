@@ -4,8 +4,10 @@ import com.example.BE.security.JwtFilter;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,6 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -28,7 +31,7 @@ public class SecurityConfig {
 
     @PostConstruct
     public void init() {
-        System.out.println(" SecurityConfig INIT RUNNING.......................");
+        System.out.println("SecurityConfig INIT RUNNING...");
     }
 
     @Bean
@@ -38,8 +41,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        System.out.println("🔥 SecurityConfig đang chạy");
-
         http
                 .securityMatcher("/api/**")
                 .cors(cors -> {})
@@ -49,8 +50,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/hotels/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/hotels/**").permitAll()
                         .requestMatchers("/api/crawl/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN", "RECEPTIONIST")
+                        .requestMatchers("/api/maintenance/**").authenticated()
+                        .requestMatchers("/api/bookings/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
