@@ -1,7 +1,7 @@
 package com.example.BE.model;
 
 import com.example.BE.audit.BaseAuditable;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,9 +38,12 @@ public class HotelModel extends BaseAuditable {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    @JsonIgnoreProperties({"password", "hibernateLazyInitializer", "handler"})
+    private UserModel owner;
 
+    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<RoomModel> rooms;
-
 }

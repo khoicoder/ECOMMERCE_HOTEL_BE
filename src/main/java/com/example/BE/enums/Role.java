@@ -6,7 +6,8 @@ public enum Role {
     USER,
     ADMIN,
     SUPER_ADMIN,
-    HOTEL_OWERS;
+    HOTEL_OWERS,
+    RECEPTIONIST;
 
     @JsonCreator
     public static Role fromString(String value) {
