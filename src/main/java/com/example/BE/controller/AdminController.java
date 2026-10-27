@@ -88,4 +88,77 @@ public class AdminController {
     public ResponseEntity<SessionResponse> getSession(@PathVariable UUID sessionId) {
         return ResponseEntity.ok(adminService.getSessionById(sessionId));
     }
+
+    // =========================================================================
+    // QUẢN LÝ QUẢN TRỊ VIÊN KHÁCH SẠN (HOTEL ADMINS) - DÀNH CHO SUPER_ADMIN
+    // =========================================================================
+
+    @GetMapping("/hotel-admins")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<List<com.example.BE.dto.admin.response.HotelAdminResponse>> getHotelAdmins(
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(adminService.getHotelAdmins(authentication));
+    }
+
+    @PostMapping("/hotel-admins")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<com.example.BE.dto.admin.response.HotelAdminResponse> createHotelAdmin(
+            @jakarta.validation.Valid @RequestBody com.example.BE.dto.admin.request.CreateHotelAdminRequest request,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(adminService.createHotelAdmin(request, authentication));
+    }
+
+    @PutMapping("/hotel-admins/{hotelId}/assign/{adminUserId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<com.example.BE.dto.admin.response.HotelAdminResponse> assignHotelAdmin(
+            @PathVariable Long hotelId,
+            @PathVariable Long adminUserId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(adminService.assignHotelAdmin(hotelId, adminUserId, authentication));
+    }
+
+    // =========================================================================
+    // QUẢN LÝ LỄ TÂN (RECEPTIONISTS) - DÀNH CHO ADMIN MỖI KHÁCH SẠN & SUPER_ADMIN
+    // =========================================================================
+
+    @GetMapping("/receptionists")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<List<com.example.BE.dto.admin.response.ReceptionistResponse>> getReceptionists(
+            @RequestParam(required = false) Long hotelId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(adminService.getReceptionists(hotelId, authentication));
+    }
+
+    @PostMapping("/receptionists")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<com.example.BE.dto.admin.response.ReceptionistResponse> createReceptionist(
+            @jakarta.validation.Valid @RequestBody com.example.BE.dto.admin.request.CreateReceptionistRequest request,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(adminService.createReceptionist(request, authentication));
+    }
+
+    @PatchMapping("/receptionists/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<com.example.BE.dto.admin.response.ReceptionistResponse> toggleReceptionistStatus(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(adminService.toggleReceptionistStatus(id, authentication));
+    }
+
+    @PostMapping("/receptionists/{id}/reset-password")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<?> resetReceptionistPassword(
+            @PathVariable Long id,
+            @jakarta.validation.Valid @RequestBody com.example.BE.dto.admin.request.ResetStaffPasswordRequest request,
+            Authentication authentication
+    ) {
+        adminService.resetReceptionistPassword(id, request, authentication);
+        return ResponseEntity.ok(java.util.Map.of("message", "Đổi mật khẩu thành công"));
+    }
 }

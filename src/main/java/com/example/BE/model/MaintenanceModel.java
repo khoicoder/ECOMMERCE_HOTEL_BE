@@ -3,7 +3,6 @@ package com.example.BE.model;
 import com.example.BE.audit.BaseAuditable;
 import com.example.BE.enums.MaintenanceStatus;
 import com.example.BE.enums.MaintenanceType;
-import com.sun.tools.javac.Main;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -8,5 +8,10 @@ public record AuthPrincipal(
         Long userId,
         String username,
         Role role,
-        UUID sessionId
-)  {}
+        UUID sessionId,
+        String tenantCode
+) {
+    public AuthPrincipal(Long userId, String username, Role role, UUID sessionId) {
+        this(userId, username, role, sessionId, "DEFAULT");
+    }
+}

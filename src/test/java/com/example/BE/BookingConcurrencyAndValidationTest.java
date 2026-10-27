@@ -31,12 +31,23 @@ public class BookingConcurrencyAndValidationTest {
     @Autowired
     private BookingRepository bookingRepository;
 
+    @Autowired
+    private com.example.BE.repository.RoomRepository roomRepository;
+
+    @Autowired
+    private com.example.BE.repository.PaymentRepository paymentRepository;
+
     @org.junit.jupiter.api.BeforeEach
     void setUp() {
         var existing = bookingRepository.findAll().stream()
-                .filter(b -> b.getRoom() != null && (b.getRoom().getId() == 101L || b.getRoom().getId() == 102L))
+                .filter(b -> b.getRoom() != null && (b.getRoom().getId() == 101L || b.getRoom().getId() == 102L || b.getRoom().getId() == 206L))
                 .toList();
-        bookingRepository.deleteAll(existing);
+        for (var b : existing) {
+            try {
+                paymentRepository.findByBooking_IdOrderByPaidAtDesc(b.getId()).forEach(paymentRepository::delete);
+                bookingRepository.delete(b);
+            } catch (Exception ignored) {}
+        }
     }
 
     private Authentication createAuth(Long userId, String username) {
@@ -110,6 +121,12 @@ public class BookingConcurrencyAndValidationTest {
     @DisplayName("Business Validation: Không cho phép đặt phòng đang trong trạng thái MAINTENANCE")
     void testBookingMaintenanceRoomFails() {
         Long maintenanceRoomId = 206L; // Phòng 206 đang bảo trì
+        var roomOpt = roomRepository.findById(maintenanceRoomId);
+        if (roomOpt.isPresent()) {
+            var r = roomOpt.get();
+            r.setStatus(com.example.BE.enums.RoomStatus.MAINTENANCE);
+            roomRepository.save(r);
+        }
         BookingRequest request = new BookingRequest(maintenanceRoomId, LocalDate.now().plusDays(2), LocalDate.now().plusDays(4));
         Authentication auth = createAuth(10L, "khachhang_vip");
 

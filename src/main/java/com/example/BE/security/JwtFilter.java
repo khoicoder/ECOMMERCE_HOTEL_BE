@@ -5,7 +5,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,35 +25,41 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getServletPath();
         String authHeader = request.getHeader("Authorization");
 
-        // Parse token if present
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            try {
-                String token = authHeader.substring(7).trim();
-                if (jwtUtil.validateAccessToken(token)) {
-                    AuthPrincipal principal = new AuthPrincipal(
-                            jwtUtil.extractUserID(token),
-                            jwtUtil.extractUsername(token),
-                            jwtUtil.extractRole(token),
-                            jwtUtil.extractSessionID(token));
+        try {
+            // Parse token if present
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                try {
+                    String token = authHeader.substring(7).trim();
+                    if (jwtUtil.validateAccessToken(token)) {
+                        String tenantCode = jwtUtil.extractTenantCode(token);
+                        AuthPrincipal principal = new AuthPrincipal(
+                                jwtUtil.extractUserID(token),
+                                jwtUtil.extractUsername(token),
+                                jwtUtil.extractRole(token),
+                                jwtUtil.extractSessionID(token),
+                                tenantCode);
 
-                    List<SimpleGrantedAuthority> authorities = List.of(
-                            new SimpleGrantedAuthority("ROLE_" + principal.role()));
+                        TenantContext.setTenant(tenantCode);
 
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                            principal,
-                            null,
-                            authorities);
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                        List<SimpleGrantedAuthority> authorities = List.of(
+                                new SimpleGrantedAuthority("ROLE_" + principal.role()));
+
+                        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                                principal,
+                                null,
+                                authorities);
+                        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    }
+                } catch (Exception e) {
+                    System.err.println("JwtFilter token validation error: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                // If token is invalid and path requires auth, let SecurityFilterChain reject it
-                System.err.println("JwtFilter token validation error: " + e.getMessage());
             }
-        }
 
-        filterChain.doFilter(request, response);
+            filterChain.doFilter(request, response);
+        } finally {
+            TenantContext.clear();
+        }
     }
 }

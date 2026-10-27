@@ -1,0 +1,11 @@
+# Configuration for Shared SaaS Deployment
+# All tenants share this database instance, isolated via tenant_id column
+app:
+  multitenancy:
+    mode: shared
+    default-tenant: ${APP_DEFAULT_TENANT:DEFAULT}
+
+logging:
+  level:
+    com.example.BE: INFO
+    org.springframework.security: WARN
