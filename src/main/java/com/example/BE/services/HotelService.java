@@ -21,7 +21,9 @@ public class HotelService {
     private final UserRepository userRepository;
 
     public List<HotelModel> getAll() {
-        return hotelRepository.findAll();
+        return hotelRepository.findAll().stream()
+                .filter(h -> "ACTIVE".equalsIgnoreCase(h.getStatus()))
+                .toList();
     }
 
     public HotelModel getHotelById(Long id) {

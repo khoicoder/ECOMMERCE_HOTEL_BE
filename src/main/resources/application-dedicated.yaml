@@ -1,0 +1,11 @@
+# Configuration for Dedicated Single-Tenant Deployment
+# Standalone instance for a single organization/hotel chain with dedicated database
+app:
+  multitenancy:
+    mode: dedicated
+    default-tenant: ${APP_DEFAULT_TENANT:DEDICATED}
+
+logging:
+  level:
+    com.example.BE: INFO
+    org.springframework.security: WARN

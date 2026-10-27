@@ -51,8 +51,7 @@ public class BookingServiceImpl implements BookingService {
         } else if (role == Role.ADMIN || role == Role.RECEPTIONIST) {
             HotelModel owned = findOwnedHotel(principal.userId());
             if (owned == null) {
-                return bookingRepository.findByRoom_Hotel_IdOrderByCreatedAtDesc(1L).stream()
-                        .map(this::mapToResponseBooking).toList();
+                return List.of();
             }
             return bookingRepository.findByRoom_Hotel_IdOrderByCreatedAtDesc(owned.getId()).stream()
                     .map(this::mapToResponseBooking).toList();
@@ -369,7 +368,7 @@ public class BookingServiceImpl implements BookingService {
 
         BigDecimal pricePerNight = booking.getRoom() != null && booking.getRoom().getPrice() != null
                 ? booking.getRoom().getPrice()
-                : booking.getTotalPrice().divide(BigDecimal.valueOf(nights), BigDecimal.ROUND_HALF_UP);
+                : booking.getTotalPrice().divide(BigDecimal.valueOf(nights), java.math.RoundingMode.HALF_UP);
 
         BigDecimal extra = booking.getExtraCharges() != null ? booking.getExtraCharges() : BigDecimal.ZERO;
         BigDecimal totalBill = booking.getTotalPrice().add(extra);
@@ -413,9 +412,8 @@ public class BookingServiceImpl implements BookingService {
             Role role = principal.role();
             if (role == Role.ADMIN || role == Role.RECEPTIONIST) {
                 HotelModel owned = findOwnedHotel(principal.userId());
-                Long hotelId = owned != null ? owned.getId() : 1L;
-                if (booking.getRoom() == null || booking.getRoom().getHotel() == null
-                        || !booking.getRoom().getHotel().getId().equals(hotelId)) {
+                if (owned == null || booking.getRoom() == null || booking.getRoom().getHotel() == null
+                        || !booking.getRoom().getHotel().getId().equals(owned.getId())) {
                     throw new UnauthorizedException("Bạn chỉ có quyền hủy đơn đặt phòng thuộc khách sạn do bạn quản lý");
                 }
             } else if (role == Role.USER) {
@@ -584,6 +582,39 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public BookingResponse getBookingById(Long id, Authentication authentication) {
+        BookingModel booking = bookingRepository.findById(id).orElseThrow(
+                () -> new NotFoundException("Không tìm thấy đơn đặt phòng với ID: " + id)
+        );
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof AuthPrincipal principal)) {
+            throw new UnauthorizedException("Vui lòng đăng nhập để xem thông tin đơn đặt phòng");
+        }
+
+        Role role = principal.role();
+        if (role == Role.SUPER_ADMIN) {
+            return mapToResponseBooking(booking);
+        }
+
+        if (role == Role.ADMIN || role == Role.RECEPTIONIST) {
+            HotelModel owned = findOwnedHotel(principal.userId());
+            if (owned == null || booking.getRoom() == null || booking.getRoom().getHotel() == null
+                    || !booking.getRoom().getHotel().getId().equals(owned.getId())) {
+                throw new UnauthorizedException("Bạn không có quyền truy cập đơn đặt phòng của khách sạn khác");
+            }
+            return mapToResponseBooking(booking);
+        }
+
+        // USER role
+        if (booking.getUser() == null || !booking.getUser().getId().equals(principal.userId())) {
+            throw new UnauthorizedException("Bạn chỉ có quyền xem đơn đặt phòng của chính bạn");
+        }
+
+        return mapToResponseBooking(booking);
+    }
+
+    @Override
     public List<BookingResponse> findAllByUserId(Long id) {
         return bookingRepository.findByUserIdOrderByCreatedAtDesc(id).stream()
                 .map(this::mapToResponseBooking).toList();
@@ -617,9 +648,11 @@ public class BookingServiceImpl implements BookingService {
         }
         if (role == Role.ADMIN || role == Role.RECEPTIONIST) {
             HotelModel owned = findOwnedHotel(principal.userId());
-            Long assignedHotelId = owned != null ? owned.getId() : 1L;
+            if (owned == null) {
+                throw new UnauthorizedException("Tài khoản chưa được phân công quản lý khách sạn nào để " + actionName);
+            }
             if (booking.getRoom() == null || booking.getRoom().getHotel() == null
-                    || !booking.getRoom().getHotel().getId().equals(assignedHotelId)) {
+                    || !booking.getRoom().getHotel().getId().equals(owned.getId())) {
                 throw new UnauthorizedException("Bạn chỉ có quyền " + actionName + " thuộc khách sạn bạn phụ trách");
             }
             return;

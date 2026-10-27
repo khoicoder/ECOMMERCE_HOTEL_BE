@@ -1,6 +1,7 @@
 package com.example.BE.model;
 
 import com.example.BE.audit.BaseAuditable;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -10,7 +11,11 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
-@Table(name = "hotels")
+@Table(name = "hotels", indexes = {
+        @Index(name = "idx_hotel_tenant", columnList = "tenant_id"),
+        @Index(name = "idx_hotel_status", columnList = "status"),
+        @Index(name = "idx_hotel_owner", columnList = "owner_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -37,6 +42,11 @@ public class HotelModel extends BaseAuditable {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id")
+    @JsonIgnore
+    private TenantModel tenant;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")

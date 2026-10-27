@@ -1,0 +1,76 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: hotel-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: hotel
+      MYSQL_USER: hotel_user
+      MYSQL_PASSWORD: hotel_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - hotel-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: hotel-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hotel-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hotel-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: shared
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/hotel?useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_unicode_ci&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: hotel_user
+      SPRING_DATASOURCE_PASSWORD: hotel_password
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      JWT_SECRET: c2VjdXJlX2p3dF9zZWNyZXRfa2V5X2Zvcl9ob3RlbF9tYW5hZ2VtZW50X3N5c3RlbV8yMDI2
+      APP_MULTITENANCY_MODE: shared
+      APP_DEFAULT_TENANT: DEFAULT
+    networks:
+      - hotel-network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  hotel-network:
+    driver: bridge

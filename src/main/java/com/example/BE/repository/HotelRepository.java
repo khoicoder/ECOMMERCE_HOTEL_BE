@@ -14,4 +14,8 @@ public interface HotelRepository extends JpaRepository<HotelModel, Long> {
     List<HotelModel> findByOwner(UserModel owner);
     List<HotelModel> findByOwner_Id(Long ownerId);
     Optional<HotelModel> findFirstByOwner_Id(Long ownerId);
+
+    List<HotelModel> findByTenant_Id(Long tenantId);
+    List<HotelModel> findByTenant_Code(String tenantCode);
+    long countByTenant_Id(Long tenantId);
 }

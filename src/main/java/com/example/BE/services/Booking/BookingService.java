@@ -23,6 +23,9 @@ public interface BookingService {
     int expireOverdueBookings();
     int markNoShowBookings();
 
+    // IDOR protection & tenant scoping
+    BookingResponse getBookingById(Long id, Authentication authentication);
+
     // Backward compatible methods
     BookingResponse updateStatus(Long id, BookingStatus newStatus, Authentication authentication);
     BookingResponse updatePaymentStatus(Long id, String paymentStatus, Authentication authentication);
