@@ -209,4 +209,25 @@ public class HotelStaffHierarchyTest {
             adminService.createReceptionist(req, regularUserAuth);
         });
     }
+
+    @Test
+    @DisplayName("Quy tắc 6: Lễ tân chỉ xem được khách sạn của riêng mình qua getAdminHotels")
+    void testReceptionistCanOnlySeeTheirAssignedHotel() {
+        String uniqueReceptionist = "letan_scope_" + UUID.randomUUID().toString().substring(0, 5);
+        CreateReceptionistRequest req = CreateReceptionistRequest.builder()
+                .username(uniqueReceptionist)
+                .password("Password123@")
+                .email(uniqueReceptionist + "@hotel.com")
+                .build();
+
+        ReceptionistResponse res = adminService.createReceptionist(req, adminHotel1Auth);
+        createdUserIds.add(res.getId());
+
+        AuthPrincipal principal = new AuthPrincipal(res.getId(), res.getUsername(), Role.RECEPTIONIST, UUID.randomUUID());
+        Authentication receptionistAuth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+
+        List<HotelModel> receptionistHotels = adminService.getAdminHotels(receptionistAuth);
+        assertEquals(1, receptionistHotels.size(), "Lễ tân chỉ được nhìn thấy đúng 1 khách sạn mà mình làm việc");
+        assertEquals(hotel1.getId(), receptionistHotels.get(0).getId());
+    }
 }

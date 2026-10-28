@@ -1,6 +1,8 @@
 package com.example.BE.controller;
 
 import com.example.BE.model.HotelModel;
+import com.example.BE.model.RoomModel;
+import com.example.BE.repository.RoomRepository;
 import com.example.BE.services.HotelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +20,7 @@ import java.util.List;
 public class HotelController {
 
     private final HotelService hotelService;
+    private final RoomRepository roomRepository;
 
     @GetMapping
     public ResponseEntity<List<HotelModel>> getHotels() {
@@ -27,6 +30,11 @@ public class HotelController {
     @GetMapping("/{id}")
     public ResponseEntity<HotelModel> getHotelById(@PathVariable Long id) {
         return ResponseEntity.ok(hotelService.getHotelById(id));
+    }
+
+    @GetMapping("/{id}/rooms")
+    public ResponseEntity<List<RoomModel>> getRoomsByHotelId(@PathVariable Long id) {
+        return ResponseEntity.ok(roomRepository.findByHotel_Id(id));
     }
 
     @PostMapping

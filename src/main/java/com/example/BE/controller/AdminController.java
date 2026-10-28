@@ -19,11 +19,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST')")
 public class AdminController {
     private final AdminService adminService;
 
     @GetMapping("/users")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<?> getUsers(
             @RequestParam(required = false, defaultValue = "") String keyword,
             @RequestParam(required = false) String role,
@@ -36,11 +37,13 @@ public class AdminController {
     }
 
     @GetMapping("/users/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.getUserById(id));
     }
 
     @PatchMapping("/users/{id}/role")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<?> changeRole(
             @PathVariable Long id,
             @RequestBody ChangeRoleRequest request,
@@ -55,6 +58,7 @@ public class AdminController {
     }
 
     @GetMapping("/dashboard-executive")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<DashboardResponse> getDashboardExecutive(Authentication authentication) {
         return ResponseEntity.ok(adminService.getDashboard(authentication));
     }
@@ -70,21 +74,25 @@ public class AdminController {
     }
 
     @PatchMapping("/users/{id}/lock")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<?> lockUser(@PathVariable Long id, Authentication authentication) {
         return ResponseEntity.ok(adminService.lockUser(id, authentication));
     }
 
     @PatchMapping("/users/{id}/unlock")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<?> unlockUser(@PathVariable Long id, Authentication authentication) {
         return ResponseEntity.ok(adminService.unlockUser(id, authentication));
     }
 
     @GetMapping("/users/{id}/all-sessions")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<List<SessionResponse>> getAllSession(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.getAllSessionById(id));
     }
 
     @GetMapping("/sessions/{sessionId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<SessionResponse> getSession(@PathVariable UUID sessionId) {
         return ResponseEntity.ok(adminService.getSessionById(sessionId));
     }
