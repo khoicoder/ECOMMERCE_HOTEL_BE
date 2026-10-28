@@ -12,16 +12,18 @@ import com.example.BE.repository.UserRepository;
 import com.example.BE.repository.UserSessionRepository;
 import com.example.BE.security.AuthPrincipal;
 import com.example.BE.security.JwtUtil;
+import com.example.BE.security.SessionCacheService;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.data.redis.core.RedisTemplate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -29,7 +31,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final UserSessionRepository sessionRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final SessionCacheService sessionCacheService;
 
     @Transactional
     public ChangePasswordResponse changePassword(
@@ -40,23 +42,16 @@ public class UserService {
             throw new UnauthorizedException("Unauthorized");
         }
 
-        AuthPrincipal principal =
-                (AuthPrincipal) authentication.getPrincipal();
+        AuthPrincipal principal = (AuthPrincipal) authentication.getPrincipal();
 
         UserModel user = userRepository.findById(principal.userId())
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        if (!passwordEncoder.matches(
-                request.getCurrentPassword(),
-                user.getPassword()
-        )) {
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new ConflictException("Mật khẩu hiện tại không đúng");
         }
 
-        if (passwordEncoder.matches(
-                request.getNewPassword(),
-                user.getPassword()
-        )) {
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             throw new ConflictException("Mật khẩu mới không được trùng mật khẩu cũ");
         }
 
@@ -72,36 +67,43 @@ public class UserService {
             throw new BadRequestException("Session đã hết hạn");
         }
 
-        user.setPassword(
-                passwordEncoder.encode(request.getNewPassword())
-        );
-
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
         if (Boolean.TRUE.equals(request.getLogoutOtherDevices())) {
+            // Find other sessions to purge them from Redis
+            List<UserSession> allUserSessions = sessionRepository.findByUserId(user.getId());
+            List<java.util.UUID> otherSessionIds = allUserSessions.stream()
+                    .filter(s -> !s.getId().equals(currentSession.getId()) && s.getRevokedAt() == null)
+                    .map(UserSession::getId)
+                    .toList();
+
             sessionRepository.revokeAllActiveSessionsExcept(
                     user.getId(),
                     currentSession.getId(),
                     Instant.now()
             );
+
+            sessionCacheService.revokeSessions(otherSessionIds);
         }
 
         String newRefreshToken = jwtUtil.generateRefreshToken();
-
-        currentSession.setRefreshTokenHash(
-                jwtUtil.hashtoken(newRefreshToken)
-        );
+        currentSession.setRefreshTokenHash(jwtUtil.hashtoken(newRefreshToken));
         currentSession.setLastUsedAt(Instant.now());
-
-        currentSession.setRefreshTokenExpireAt(
-                Instant.now().plusMillis(jwtUtil.getRefreshTokenExpiration())
-        );
-
+        currentSession.setRefreshTokenExpireAt(Instant.now().plusMillis(jwtUtil.getRefreshTokenExpiration()));
         sessionRepository.save(currentSession);
 
-        String newAccessToken = jwtUtil.generateAccessToken(
-                user,
-                currentSession.getId()
+        String newAccessToken = jwtUtil.generateAccessToken(user, currentSession.getId());
+
+        // Update Redis session cache
+        String roleStr = user.getRole() != null ? user.getRole().name() : "USER";
+        String tenantCode = user.getTenant() != null ? user.getTenant().getCode() : "DEFAULT";
+        sessionCacheService.cacheSession(
+                currentSession.getId(),
+                user.getId(),
+                roleStr,
+                tenantCode,
+                currentSession.getRefreshTokenExpireAt()
         );
 
         return new ChangePasswordResponse(
@@ -111,14 +113,13 @@ public class UserService {
                 newRefreshToken
         );
     }
-    //lấy đại diện
+
     private AuthPrincipal getPrincipal(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedException("Unauthorized");
         }
 
         Object principal = authentication.getPrincipal();
-
         if (!(principal instanceof AuthPrincipal authPrincipal)) {
             throw new ValidateException("Invalid authentication principal");
         }
@@ -126,16 +127,13 @@ public class UserService {
         return authPrincipal;
     }
 
-
-
-
     public ProfileResponse getProfile(Authentication authentication) {
         AuthPrincipal principal = getPrincipal(authentication);
         UserModel user = userRepository.findById(principal.userId()).orElseThrow(()
                 -> new NotFoundException("User not found"));
         return BuildProfileResponse(user);
-
     }
+
     @Transactional
     public UpdateProfileResponse updateProfile(
             UpdateProfileRequest request,
@@ -144,40 +142,32 @@ public class UserService {
         UserModel user = getCurrentUser(authentication);
         AuthPrincipal principal = getPrincipal(authentication);
         validateBlankFields(request);
-        boolean usernameChanged =
-                request.getUsername() != null
-                        && !request.getUsername().isBlank()
-                        && !request.getUsername().equals(user.getUsername());
 
-        boolean emailChanged =
-                request.getEmail() != null
-                        && !request.getEmail().isBlank()
-                        && !request.getEmail().equals(user.getEmail());
+        boolean usernameChanged = request.getUsername() != null
+                && !request.getUsername().isBlank()
+                && !request.getUsername().equals(user.getUsername());
 
-        boolean avatarChanged =
-                request.getAvatarUrl() != null
-                        && !request.getAvatarUrl().isBlank();
+        boolean emailChanged = request.getEmail() != null
+                && !request.getEmail().isBlank()
+                && !request.getEmail().equals(user.getEmail());
 
-        boolean phoneChanged =
-                request.getPhone() != null
-                        && !request.getPhone().isBlank()
-                        && !request.getPhone().equals(user.getPhone());
+        boolean avatarChanged = request.getAvatarUrl() != null
+                && !request.getAvatarUrl().isBlank();
 
-        boolean addressChanged =
-                request.getAddress() != null
-                        && !request.getAddress().isBlank()
-                        && !request.getAddress().equals(user.getAddress());
+        boolean phoneChanged = request.getPhone() != null
+                && !request.getPhone().isBlank()
+                && !request.getPhone().equals(user.getPhone());
 
+        boolean addressChanged = request.getAddress() != null
+                && !request.getAddress().isBlank()
+                && !request.getAddress().equals(user.getAddress());
 
-        boolean needNewToken =
-                usernameChanged
-                        || emailChanged;
+        boolean needNewToken = usernameChanged || emailChanged;
 
         if (usernameChanged) {
             if (userRepository.findByUsername(request.getUsername()).isPresent()) {
                 throw new ConflictException("Username already exists");
             }
-
             user.setUsername(request.getUsername());
         }
 
@@ -185,7 +175,6 @@ public class UserService {
             if (userRepository.findByEmail(request.getEmail()).isPresent()) {
                 throw new ConflictException("Email already exists");
             }
-
             user.setEmail(request.getEmail());
         }
 
@@ -204,21 +193,35 @@ public class UserService {
         userRepository.save(user);
         String accessToken = null;
         String refreshToken = null;
+
         if (needNewToken) {
-            UserSession currentSesson = sessionRepository.findById(principal.sessionId()).orElseThrow(()
-                    ->new UnauthorizedException("Session not found"));
-            if(currentSesson.getRevokedAt() != null) {
+            UserSession currentSession = sessionRepository.findById(principal.sessionId()).orElseThrow(()
+                    -> new UnauthorizedException("Session not found"));
+            if (currentSession.getRevokedAt() != null) {
                 throw new UnauthorizedException("Session đã bị đăng xuất");
             }
-            if(currentSesson.getRefreshTokenExpireAt().isBefore(Instant.now())) {
+            if (currentSession.getRefreshTokenExpireAt().isBefore(Instant.now())) {
                 throw new UnauthorizedException("Session đã hết hạn");
             }
+
             refreshToken = jwtUtil.generateRefreshToken();
-            currentSesson.setRefreshTokenHash(jwtUtil.hashtoken(refreshToken));
-            currentSesson.setLastUsedAt(Instant.now());
-            currentSesson.setRefreshTokenExpireAt(Instant.now().plusMillis(jwtUtil.getRefreshTokenExpiration()));
-            sessionRepository.save(currentSesson);
-            accessToken = jwtUtil.generateAccessToken(user, currentSesson.getId());
+            currentSession.setRefreshTokenHash(jwtUtil.hashtoken(refreshToken));
+            currentSession.setLastUsedAt(Instant.now());
+            currentSession.setRefreshTokenExpireAt(Instant.now().plusMillis(jwtUtil.getRefreshTokenExpiration()));
+            sessionRepository.save(currentSession);
+
+            accessToken = jwtUtil.generateAccessToken(user, currentSession.getId());
+
+            String roleStr = user.getRole() != null ? user.getRole().name() : "USER";
+            String tenantCode = user.getTenant() != null ? user.getTenant().getCode() : "DEFAULT";
+            sessionCacheService.cacheSession(
+                    currentSession.getId(),
+                    user.getId(),
+                    roleStr,
+                    tenantCode,
+                    currentSession.getRefreshTokenExpireAt()
+            );
+
             return new UpdateProfileResponse(
                     "cập nhật hồ sơ thành công",
                     BuildProfileResponse(user),
@@ -227,7 +230,6 @@ public class UserService {
             );
         }
 
-
         return new UpdateProfileResponse(
                 "profile updated successfully",
                 BuildProfileResponse(user),
@@ -235,11 +237,6 @@ public class UserService {
                 refreshToken
         );
     }
-//
-//    private static Long getId(UserModel user) {
-//        return user.getId();
-//    }
-
 
     private ProfileResponse BuildProfileResponse(UserModel user) {
         return new ProfileResponse(
@@ -248,45 +245,34 @@ public class UserService {
                 user.getRole(),
                 user.getPhone(),
                 user.getAddress(),
-                user.getAvatarUrl());
+                user.getAvatarUrl()
+        );
     }
+
     private UserModel getCurrentUser(Authentication auth) {
         if (auth == null || !auth.isAuthenticated()) {
             throw new UnauthorizedException("Unauthorized");
-
         }
-        AuthPrincipal principal =  (AuthPrincipal) auth.getPrincipal();
-        System.out.println("AUTH NAME = " + auth.getName());
-        System.out.println("PRINCIPAL = " + auth.getPrincipal());
-
-
+        AuthPrincipal principal = (AuthPrincipal) auth.getPrincipal();
         return userRepository.findById(principal.userId()).orElseThrow(()
-                -> new NotFoundException("User not found :"+principal.userId()));
-
+                -> new NotFoundException("User not found :" + principal.userId()));
     }
+
     private void validateBlankFields(UpdateProfileRequest rq) {
         if (rq.getUsername() != null && rq.getUsername().isBlank()) {
             throw new ValidateException("Username không được để trống");
         }
-
         if (rq.getEmail() != null && rq.getEmail().isBlank()) {
             throw new ValidateException("Email không được để trống");
         }
-
         if (rq.getPhone() != null && rq.getPhone().isBlank()) {
             throw new ValidateException("Phone không được để trống");
         }
-
         if (rq.getAddress() != null && rq.getAddress().isBlank()) {
             throw new ValidateException("Address không được để trống");
         }
-
         if (rq.getAvatarUrl() != null && rq.getAvatarUrl().isBlank()) {
             throw new ValidateException("Avatar không được để trống");
         }
-
-    }
-    private String refreshKey(String username) {
-        return "refresh" + username;
     }
 }

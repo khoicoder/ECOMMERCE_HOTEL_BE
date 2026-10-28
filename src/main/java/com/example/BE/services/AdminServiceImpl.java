@@ -16,6 +16,7 @@ import com.example.BE.exception.UnauthorizedException;
 import com.example.BE.model.*;
 import com.example.BE.repository.*;
 import com.example.BE.security.AuthPrincipal;
+import com.example.BE.security.SessionCacheService;
 import com.example.BE.services.Booking.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -48,6 +49,7 @@ public class AdminServiceImpl implements AdminService {
     private final RoomRepository roomRepository;
     private final AuditLogRepository auditLogRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SessionCacheService sessionCacheService;
 
     @Override
     public Page<UserResponse> getAllUsers(
@@ -99,6 +101,13 @@ public class AdminServiceImpl implements AdminService {
                 () -> new NotFoundException("User not found: " + id));
         user.setActive(false);
         userRepository.save(user);
+
+        // Immediate session purge across MySQL and Redis
+        userSessionRepository.revokeAllActiveSessions(id, Instant.now());
+        sessionCacheService.revokeSessions(
+                userSessionRepository.findByUserId(id).stream().map(UserSession::getId).toList()
+        );
+
         return mapToResponse(user);
     }
 
@@ -213,15 +222,28 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<HotelModel> getAdminHotels(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof AuthPrincipal principal) {
             Role role = principal.role();
             if (role == Role.ADMIN || role == Role.RECEPTIONIST) {
                 HotelModel owned = findOwnedHotel(principal.userId());
-                return owned != null ? List.of(owned) : List.of();
+                if (owned != null) {
+                    if (owned.getRooms() != null) {
+                        owned.getRooms().size();
+                    }
+                    return List.of(owned);
+                }
+                return List.of();
             }
         }
-        return hotelRepository.findAll();
+        List<HotelModel> hotels = hotelRepository.findAll();
+        for (HotelModel h : hotels) {
+            if (h.getRooms() != null) {
+                h.getRooms().size();
+            }
+        }
+        return hotels;
     }
 
     @Override
@@ -590,6 +612,9 @@ public class AdminServiceImpl implements AdminService {
         // Nếu khóa tài khoản, lập tức thu hồi mọi session đang hoạt động
         if (!user.isActive()) {
             userSessionRepository.revokeAllActiveSessions(userId, Instant.now());
+            sessionCacheService.revokeSessions(
+                    userSessionRepository.findByUserId(userId).stream().map(UserSession::getId).toList()
+            );
         }
 
         logAudit(principal.userId(), principal.username(), user.isActive() ? "UNLOCK_RECEPTIONIST" : "LOCK_RECEPTIONIST",
@@ -644,6 +669,9 @@ public class AdminServiceImpl implements AdminService {
 
         // Thu hồi toàn bộ session cũ để bắt buộc đăng nhập bằng mật khẩu mới
         userSessionRepository.revokeAllActiveSessions(userId, Instant.now());
+        sessionCacheService.revokeSessions(
+                userSessionRepository.findByUserId(userId).stream().map(UserSession::getId).toList()
+        );
 
         logAudit(principal.userId(), principal.username(), "RESET_PASSWORD_RECEPTIONIST",
                 "Đổi mật khẩu cho Lễ tân @" + user.getUsername(), "UserModel", user.getId());

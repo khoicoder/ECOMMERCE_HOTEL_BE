@@ -3,6 +3,7 @@ package com.example.BE.security;
 import com.example.BE.enums.Role;
 import com.example.BE.model.UserModel;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -112,6 +113,33 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public Claims parseClaimsAllowExpired(String token) {
+        try {
+            return parseClaims(token);
+        } catch (ExpiredJwtException e) {
+            return e.getClaims();
+        }
+    }
+
+    public UUID extractSessionIDAllowExpired(String token) {
+        try {
+            Claims claims = parseClaimsAllowExpired(token);
+            String sid = claims.get("sid", String.class);
+            return sid != null ? UUID.fromString(sid) : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public Long extractUserIDAllowExpired(String token) {
+        try {
+            Claims claims = parseClaimsAllowExpired(token);
+            return claims.get("uid", Long.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public boolean validateAccessToken(String token) {
