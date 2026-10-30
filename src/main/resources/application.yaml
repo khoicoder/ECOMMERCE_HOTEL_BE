@@ -44,3 +44,61 @@ app:
   multitenancy:
     mode: ${APP_MULTITENANCY_MODE:shared}
     default-tenant: ${APP_DEFAULT_TENANT:DEFAULT}
+
+logging:
+  file:
+    name: logs/application.log
+  logback:
+    rollingpolicy:
+        # Định dạng tên file sau khi rotate (lưu theo ngày và số thứ tự)
+      file-name-pattern: logs/archived/app-%d{yyyy-MM-dd}.%i.log.gz
+
+        # Dung lượng tối đa của MỖI file trước khi tách file mới (vd: 10MB)
+      max-file-size: 10MB
+
+        # TỔNG dung lượng tối đa của tất cả các file log lưu trữ (vd: 1GB)
+        # Khi vượt quá ngưỡng này, Logback sẽ tự xoá log cũ nhất
+      total-size-cap: 1GB
+
+        # Số ngày lưu trữ tối đa trước khi xoá
+      max-history: 30
+
+        # Xoá log cũ ngay khi ứng dụng khởi động nếu vượt ngưỡng
+      clean-history-on-start: true
+
+# Spring Boot Actuator & Micrometer Configuration
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: "health,info,prometheus,metrics"
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+    prometheus:
+      enabled: true
+    metrics:
+      enabled: true
+    info:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name:hotel-backend}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+      slo:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms, 1s, 2s
+    enable:
+      jvm: true
+      process: true
+      system: true
+      hikaricp: true
+      redis: true
+    log-storage:
+      refresh-rate-ms: 30000

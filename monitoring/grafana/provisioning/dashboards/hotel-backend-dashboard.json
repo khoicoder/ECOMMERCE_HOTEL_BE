@@ -1,0 +1,287 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "1. Application Overview & Health",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 2,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "pluginVersion": "10.4.0",
+      "targets": [{ "expr": "up{job=\"spring-boot-backend\"}", "legendFormat": "Backend Status", "refId": "A" }],
+      "title": "Application Availability",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "gridPos": { "h": 4, "w": 5, "x": 4, "y": 1 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count[1m]))", "legendFormat": "Throughput", "refId": "A" }],
+      "title": "HTTP Request Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 9, "y": 1 },
+      "id": 4,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "(sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m])) or vector(0)) / (sum(rate(http_server_requests_seconds_count[1m])) > 0) * 100", "legendFormat": "5xx Error %", "refId": "A" }],
+      "title": "5xx Error Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "gridPos": { "h": 4, "w": 5, "x": 14, "y": 1 },
+      "id": 5,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le))", "legendFormat": "P95 Latency", "refId": "A" }],
+      "title": "P95 Response Time",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "gridPos": { "h": 4, "w": 5, "x": 19, "y": 1 },
+      "id": 6,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le))", "legendFormat": "P99 Latency", "refId": "A" }],
+      "title": "P99 Response Time",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 20 }, "unit": "s" } },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 5 },
+      "id": 7,
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket[5m])) by (le))", "legendFormat": "p50 (Median)", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le))", "legendFormat": "p95", "refId": "B" },
+        { "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le))", "legendFormat": "p99", "refId": "C" }
+      ],
+      "title": "HTTP Latency Distribution",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 15 }, "unit": "short" } },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 5 },
+      "id": 8,
+      "targets": [
+        { "expr": "sum by (status) (rate(http_server_requests_seconds_count[1m]))", "legendFormat": "HTTP {{status}}", "refId": "A" }
+      ],
+      "title": "HTTP Requests by Status Code",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 12 },
+      "id": 9,
+      "title": "2. JVM Runtime & Memory",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 20 }, "unit": "bytes" } },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 13 },
+      "id": 10,
+      "targets": [
+        { "expr": "jvm_memory_used_bytes{area=\"heap\"}", "legendFormat": "Heap Used", "refId": "A" },
+        { "expr": "jvm_memory_committed_bytes{area=\"heap\"}", "legendFormat": "Heap Committed", "refId": "B" },
+        { "expr": "jvm_memory_max_bytes{area=\"heap\"}", "legendFormat": "Heap Max", "refId": "C" }
+      ],
+      "title": "JVM Heap Memory",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 15 }, "unit": "percentunit" } },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 13 },
+      "id": 11,
+      "targets": [
+        { "expr": "process_cpu_usage", "legendFormat": "Process CPU", "refId": "A" },
+        { "expr": "system_cpu_usage", "legendFormat": "System CPU", "refId": "B" }
+      ],
+      "title": "CPU Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 13 },
+      "id": 12,
+      "targets": [
+        { "expr": "jvm_threads_live_threads", "legendFormat": "Live Threads", "refId": "A" },
+        { "expr": "jvm_threads_daemon_threads", "legendFormat": "Daemon Threads", "refId": "B" },
+        { "expr": "jvm_threads_peak_threads", "legendFormat": "Peak Threads", "refId": "C" }
+      ],
+      "title": "JVM Threads & Concurrency",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 },
+      "id": 13,
+      "title": "3. Database & Connection Pool (HikariCP)",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 25 }, "unit": "short" } },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 21 },
+      "id": 14,
+      "targets": [
+        { "expr": "hikaricp_connections_active{pool=\"HotelHikariCP\"}", "legendFormat": "Active Connections", "refId": "A" },
+        { "expr": "hikaricp_connections_idle{pool=\"HotelHikariCP\"}", "legendFormat": "Idle Connections", "refId": "B" },
+        { "expr": "hikaricp_connections_max{pool=\"HotelHikariCP\"}", "legendFormat": "Max Limit", "refId": "C" },
+        { "expr": "hikaricp_connections_pending{pool=\"HotelHikariCP\"}", "legendFormat": "Pending / Waiting", "refId": "D" }
+      ],
+      "title": "HikariCP Connection Pool Utilization",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 21 },
+      "id": 15,
+      "targets": [
+        { "expr": "hikaricp_connections_acquire_seconds_max{pool=\"HotelHikariCP\"}", "legendFormat": "Max Acquire Time", "refId": "A" },
+        { "expr": "rate(hikaricp_connections_acquire_seconds_sum{pool=\"HotelHikariCP\"}[1m]) / rate(hikaricp_connections_acquire_seconds_count{pool=\"HotelHikariCP\"}[1m])", "legendFormat": "Avg Acquire Time", "refId": "B" }
+      ],
+      "title": "Database Connection Acquisition Time",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
+      "id": 16,
+      "title": "4. Log Storage & Disk Capacity",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 29 },
+      "id": 17,
+      "targets": [
+        { "expr": "app_log_storage_used_bytes", "legendFormat": "Used Log Bytes", "refId": "A" },
+        { "expr": "app_log_storage_cap_bytes", "legendFormat": "Configured Cap Limit", "refId": "B" }
+      ],
+      "title": "Log Directory Used vs. Configured Cap",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "max": 1,
+          "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.75 }, { "color": "red", "value": 0.90 }] },
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 29 },
+      "id": 18,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "targets": [{ "expr": "app_log_storage_usage_ratio", "legendFormat": "Usage Ratio", "refId": "A" }],
+      "title": "Log Storage Usage Ratio (to Cap)",
+      "type": "gauge"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 29 },
+      "id": 19,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "disk_free_bytes{path=\"logs\"} or disk_free_bytes{path=\".\"} or app_log_storage_used_bytes", "legendFormat": "Disk Free", "refId": "A" }],
+      "title": "Disk Free Space",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 },
+      "id": 20,
+      "title": "5. Hotel Business Operations",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 36 },
+      "id": 21,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "hotel_bookings_total{status=\"SUCCESS\"}", "legendFormat": "Success Bookings", "refId": "A" }],
+      "title": "Bookings Created",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 36 },
+      "id": 22,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "hotel_guest_checkins_total", "legendFormat": "Check-ins", "refId": "A" }],
+      "title": "Guest Check-Ins",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 36 },
+      "id": 23,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "hotel_guest_checkouts_total", "legendFormat": "Check-outs", "refId": "A" }],
+      "title": "Guest Check-Outs",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 36 },
+      "id": 24,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "hotel_payments_processed_total{result=\"SUCCESS\"}", "legendFormat": "Payments Success", "refId": "A" }],
+      "title": "Payments Processed",
+      "type": "stat"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["hotel", "backend", "observability", "sre"],
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": { "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"] },
+  "timezone": "browser",
+  "title": "Hotel Backend Observability Dashboard",
+  "uid": "hotel-backend-overview",
+  "version": 1
+}

@@ -93,7 +93,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     public List<EquipmentResponse> getAllEquipmentWorkingInHotel(EquipmentStatus statusWorking, Long hotelId) {
         hotelRepository.findById(hotelId).orElseThrow(() ->
                 new NotFoundException("Hotel Not Found: " + hotelId));
-        List<EquipmentModel> equipment = equipmentRepository.findByHotel(hotelId);
+        List<EquipmentModel> equipment = equipmentRepository.findByHotel_Id(hotelId);
         return equipment.stream()
                 .filter(e -> statusWorking == null || e.getStatus() == statusWorking)
                 .map(this::mapToEquipmentResponse).toList();
@@ -103,7 +103,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     public List<EquipmentResponse> getAllByHotelId(Long hotelId) {
         hotelRepository.findById(hotelId).orElseThrow(() ->
                 new NotFoundException("Hotel Not Found: " + hotelId));
-        List<EquipmentModel> equipment = equipmentRepository.findByHotel(hotelId);
+        List<EquipmentModel> equipment = equipmentRepository.findByHotel_Id(hotelId);
         return equipment.stream().map(this::mapToEquipmentResponse).toList();
     }
 

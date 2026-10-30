@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+# Alerting rules configuration
+rule_files:
+  - "alert.rules.yml"
+
+scrape_configs:
+  # Scrape Spring Boot Backend via Actuator Prometheus Endpoint
+  - job_name: "spring-boot-backend"
+    metrics_path: "/actuator/prometheus"
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    static_configs:
+      # Target host.docker.internal works seamlessly when Prometheus runs in Docker
+      # and Spring Boot runs on host (e.g. port 8080).
+      # If running both inside Docker network, hotel-backend:8080 can also be resolved.
+      - targets: ["host.docker.internal:8080"]
+        labels:
+          application: "hotel-management-backend"
+          environment: "production"
+
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

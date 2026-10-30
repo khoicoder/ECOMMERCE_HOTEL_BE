@@ -53,6 +53,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/hotels/**").permitAll()
+                        // Spring Boot Actuator Observability Endpoints
+                        // health and prometheus scrape are allowed for orchestrators / prometheus server
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/info").permitAll()
+                        .requestMatchers("/actuator/prometheus").permitAll()
+                        // General actuator endpoints require authenticated admin access
+                        .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
                         // System Admin restricted
                         .requestMatchers("/api/crawl/**").hasRole("SUPER_ADMIN")
                         // Management consoles
@@ -61,6 +68,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/maintenance/**").authenticated()
                         .requestMatchers("/api/bookings/**").authenticated()
                         .requestMatchers("/hotelbeds/**").authenticated()
+                        .requestMatchers("/api/system/logs/**").permitAll() //để test
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
