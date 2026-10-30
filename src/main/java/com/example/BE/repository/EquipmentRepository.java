@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface EquipmentRepository extends JpaRepository<EquipmentModel,Long> {
-    List<EquipmentModel> findByHotel(Long hotelId);
+public interface EquipmentRepository extends JpaRepository<EquipmentModel, Long> {
+    List<EquipmentModel> findByHotel_Id(Long hotelId);
+    List<EquipmentModel> findByHotel(HotelModel hotel);
     List<EquipmentModel> findByRoomId(Long roomId);
     List<EquipmentModel> findByStatus(EquipmentStatus status);
-
 }

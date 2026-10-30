@@ -10,6 +10,7 @@ import com.example.BE.exception.BadRequestException;
 import com.example.BE.exception.ConflictException;
 import com.example.BE.exception.NotFoundException;
 import com.example.BE.exception.UnauthorizedException;
+import com.example.BE.metrics.HotelBusinessMetrics;
 import com.example.BE.model.*;
 import com.example.BE.repository.*;
 import com.example.BE.security.AuthPrincipal;
@@ -36,6 +37,7 @@ public class BookingServiceImpl implements BookingService {
     private final HotelStaffRepository hotelStaffRepository;
     private final PaymentRepository paymentRepository;
     private final AuditLogRepository auditLogRepository;
+    private final HotelBusinessMetrics hotelBusinessMetrics;
 
     @Override
     public List<BookingResponse> findAllBookings(Authentication authentication) {
@@ -141,6 +143,9 @@ public class BookingServiceImpl implements BookingService {
 
         BookingModel savedBooking = bookingRepository.save(booking);
         logAudit(authPrincipal.userId(), authPrincipal.username(), "CREATE_BOOKING", "Tạo đơn đặt phòng #" + savedBooking.getId(), "BookingModel", savedBooking.getId());
+        if (hotelBusinessMetrics != null) {
+            hotelBusinessMetrics.recordBookingSuccess();
+        }
         return mapToResponseBooking(savedBooking);
     }
 
@@ -212,6 +217,9 @@ public class BookingServiceImpl implements BookingService {
 
         BookingModel saved = bookingRepository.save(booking);
         logAudit(extractUserId(authentication), actor, "CHECK_IN", "Khách Check-in phòng " + room.getName() + " đơn #" + id, "BookingModel", id);
+        if (hotelBusinessMetrics != null) {
+            hotelBusinessMetrics.recordCheckIn();
+        }
         return mapToResponseBooking(saved);
     }
 
@@ -262,6 +270,9 @@ public class BookingServiceImpl implements BookingService {
 
         BookingModel saved = bookingRepository.save(booking);
         logAudit(extractUserId(authentication), actor, "CHECK_OUT", "Khách Check-out đơn #" + id + ", dư nợ: " + remaining + " đ", "BookingModel", id);
+        if (hotelBusinessMetrics != null) {
+            hotelBusinessMetrics.recordCheckOut();
+        }
         return mapToResponseBooking(saved);
     }
 
@@ -350,6 +361,10 @@ public class BookingServiceImpl implements BookingService {
 
         logAudit(extractUserId(authentication), extractUsername(authentication), "PAYMENT",
                 "Thu tiền " + request.getAmount() + " đ qua " + method + " cho đơn #" + id, "PaymentModel", payment.getId());
+
+        if (hotelBusinessMetrics != null) {
+            hotelBusinessMetrics.recordPaymentSuccess();
+        }
 
         return mapToResponseBooking(saved);
     }

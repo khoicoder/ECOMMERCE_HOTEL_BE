@@ -1,0 +1,72 @@
+groups:
+  - name: hotel-backend-alerts
+    rules:
+      # 1. Backend Application Down
+      - alert: BackendServiceDown
+        expr: up{job="spring-boot-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Hotel Backend Instance is DOWN"
+          description: "Instance {{ $labels.instance }} has been unreachable for more than 1 minute."
+
+      # 2. High HTTP 5xx Error Rate (> 5% in 5m)
+      - alert: HighHttp5xxRate
+        expr: (sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m]))) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP 5xx Error Rate detected"
+          description: "HTTP 5xx error rate is currently {{ $value | printf \"%.2f\" }}% (threshold: 5%)."
+
+      # 3. High Latency P95 (> 1.5s in 5m)
+      - alert: HighHttpLatencyP95
+        expr: histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le)) > 1.5
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP API P95 latency is exceeding threshold"
+          description: "95th percentile response time is {{ $value | printf \"%.2f\" }}s (threshold: 1.5s)."
+
+      # 4. High JVM Heap Usage (> 85% for 3m)
+      - alert: HighJvmHeapUsage
+        expr: (jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"}) * 100 > 85
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM Heap usage is high"
+          description: "JVM Heap memory usage is at {{ $value | printf \"%.2f\" }}% (threshold: 85%)."
+
+      # 5. HikariCP Connection Pool Exhaustion (> 85% active for 2m)
+      - alert: HikariPoolExhaustion
+        expr: (hikaricp_connections_active / hikaricp_connections_max) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database Connection Pool is near exhaustion"
+          description: "Active Hikari connections are at {{ $value | printf \"%.2f\" }}% of max pool size."
+
+      # 6. HikariCP Pending Connections Waiting
+      - alert: HikariPendingConnections
+        expr: hikaricp_connections_pending > 3
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection acquisition bottleneck"
+          description: "{{ $value }} requests are currently waiting to acquire a DB connection."
+
+      # 7. Log Storage Approaching Cap (> 90%)
+      - alert: LogStorageNearCap
+        expr: app_log_storage_usage_ratio * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Log storage usage has exceeded 90% of cap"
+          description: "Log directory has consumed {{ $value | printf \"%.2f\" }}% of the configured total-size-cap."
